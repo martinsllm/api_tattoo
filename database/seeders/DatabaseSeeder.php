@@ -2,9 +2,12 @@
 
 namespace Database\Seeders;
 
+use App\Models\Style;
+use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
@@ -17,9 +20,35 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // 🔐 Roles
+        Role::create(['name' => 'admin']);
+        Role::create(['name' => 'artist']);
+        Role::create(['name' => 'client']);
+
+        // 🎨 Styles
+        $styles = [
+            'Realismo',
+            'Old School',
+            'Fine Line',
+            'Blackwork',
+            'Aquarela',
+        ];
+
+        foreach ($styles as $style) {
+            Style::create(['name' => $style]);
+        }
+
+        // 🏷️ Tags
+        $tags = [
+            'Colorido',
+            'Preto e cinza',
+            'Delicado',
+            'Fechado',
+            'Minimalista',
+        ];
+
+        foreach ($tags as $tag) {
+            Tag::create(['name' => $tag]);
+        }
     }
 }
