@@ -49,4 +49,37 @@ class ArtistProfile extends Model
     {
         return $this->belongsToMany(Tag::class, 'artist_tag');
     }
+
+    public function scopeWithDistance($query, $lat, $lng)
+    {
+        return $query->select('artist_profiles.*')->selectRaw("
+            (6371 * acos(
+                cos(radians(?)) 
+                * cos(radians(latitude)) 
+                * cos(radians(longitude) - radians(?)) 
+                + sin(radians(?)) 
+                * sin(radians(latitude))
+            )) AS distance
+        ", [$lat, $lng, $lat]);
+    }
+
+    public function scopeWithinRadius($query, $radius)
+    {
+        return $query->having('distance', '<=', $radius)
+                    ->orderBy('distance');
+    }
+
+    public function scopeFilterStyles($query, $styles)
+    {
+        return $query->whereHas('styles', function ($q) use ($styles) {
+            $q->whereIn('styles.id', $styles);
+        });
+    }
+
+    public function scopeFilterTags($query, $tags)
+    {
+        return $query->whereHas('tags', function ($q) use ($tags) {
+            $q->whereIn('tags.id', $tags);
+        });
+    }
 }

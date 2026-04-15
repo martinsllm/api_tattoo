@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreArtistRequest;
 use App\Models\ArtistProfile;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -31,32 +32,18 @@ class ArtistController extends Controller
 
         // Geolocalização
         if (!is_null($lat) && !is_null($lng)) {
-            $query->select('artist_profiles.*')->selectRaw("
-                (6371 * acos(
-                    cos(radians(?)) 
-                    * cos(radians(latitude)) 
-                    * cos(radians(longitude) - radians(?)) 
-                    + sin(radians(?)) 
-                    * sin(radians(latitude))
-                )) AS distance
-            ", [$lat, $lng, $lat]);
-
-            $query->having('distance', '<=', $radius);
-            $query->orderBy('distance');
+            $query->withDistance($lat, $lng)
+              ->withinRadius($radius);
         }
 
         // Filtro por styles
         if (!empty($styles)) {
-            $query->whereHas('styles', function ($q) use ($styles) {
-                $q->whereIn('styles.id', $styles);
-            });
+            $query->filterStyles($styles);
         }
 
         // Filtro por tags
         if (!empty($tags)) {
-            $query->whereHas('tags', function ($q) use ($tags) {
-                $q->whereIn('tags.id', $tags);
-            });
+            $query->filterTags($tags);
         }
 
         // Ordenação por rating (se não tiver geo)
@@ -64,10 +51,9 @@ class ArtistController extends Controller
             $query->orderByDesc('reviews_avg_rating');
         }
 
-        // Paginação
-        $artists = $query->paginate(10);
-
-        return response()->json($artists);
+        return response()->json(
+            $query->paginate(10)
+        );
     }
 
     public function show($id)
@@ -85,7 +71,7 @@ class ArtistController extends Controller
         return response()->json($artist);
     }
 
-    public function store(Request $request)
+    public function store(StoreArtistRequest $request)
     {
         $user = User::factory()->create();
 
@@ -95,19 +81,6 @@ class ArtistController extends Controller
             ], 400);
         }
 
-        // Validação
-        $data = $request->validate([
-            'studio_name' => 'required|string|max:255',
-            'bio' => 'nullable|string',
-            'phone' => 'nullable|string|max:20',
-            'instagram' => 'nullable|string|max:255',
-            'address' => 'nullable|string|max:255',
-            'city' => 'required|string|max:100',
-            'state' => 'required|string|max:100',
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-        ]);
-
         // Um perfil por usuário
         if ($user->artistProfile) {
             return response()->json([
@@ -116,10 +89,9 @@ class ArtistController extends Controller
         }
 
         // Criar perfil
-        $artist = ArtistProfile::create([
-            ...$data,
-            'user_id' => $user->id,
-        ]);
+        $artist = $user->artistProfile()->create(
+            $request->validated()
+        );
 
         return response()->json($artist, 201);
     }
