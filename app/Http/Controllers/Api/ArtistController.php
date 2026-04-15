@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreArtistRequest;
+use App\Http\Resources\ArtistResource;
 use App\Models\ArtistProfile;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -51,9 +52,7 @@ class ArtistController extends Controller
             $query->orderByDesc('reviews_avg_rating');
         }
 
-        return response()->json(
-            $query->paginate(10)
-        );
+        return ArtistResource::collection($query->paginate(10));
     }
 
     public function show($id)
@@ -66,9 +65,9 @@ class ArtistController extends Controller
             'reviews.user'
         ])
         ->where('is_active', true)
-        ->findOrFail($id);
+        ->findOrFail($id);  
 
-        return response()->json($artist);
+        return new ArtistResource($artist);
     }
 
     public function store(StoreArtistRequest $request)
