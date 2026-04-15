@@ -32,7 +32,7 @@ class ArtistProfile extends Model
 
     public function styles()
     {
-        return $this->belongsToMany(Style::class);
+        return $this->belongsToMany(Style::class, 'artist_style');
     }
 
     public function reviews()
@@ -47,6 +47,6 @@ class ArtistProfile extends Model
 
     public function tags()
     {
-        return $this->belongsToMany(Tag::class);
+        return $this->belongsToMany(Tag::class, 'artist_tag');
     }
 }
