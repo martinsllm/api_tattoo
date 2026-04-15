@@ -9,3 +9,5 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::get('/artists', [ArtistController::class, 'index']);
+Route::get('/artists/{id}', [ArtistController::class, 'show']);
+Route::post('/artists', [ArtistController::class, 'store']);
