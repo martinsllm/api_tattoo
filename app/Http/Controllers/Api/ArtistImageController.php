@@ -14,15 +14,19 @@ class ArtistImageController extends Controller
     {
         $artist = ArtistProfile::findOrFail($id);
 
-        // salvar arquivo
-        $image_url = $request->file('image')->store('artists', 'public');
+        $uploadedImages = [];
 
-        // salvar no banco
-        $image = ArtistImage::create([
-            'artist_profile_id' => $artist->id,
-            'image_url' => $image_url,
-        ]);
+        foreach ($request->file('images') as $file) {
+            $image_url = $file->store('artists', 'public');
 
-        return new ArtistImageResource($image);
+            $image = ArtistImage::create([
+                'artist_profile_id' => $artist->id,
+                'image_url' => $image_url,
+            ]);
+
+            $uploadedImages[] = $image;
+        }
+
+        return ArtistImageResource::collection(collect($uploadedImages));
     }
 }
