@@ -92,6 +92,6 @@ class ArtistController extends Controller
             $request->validated()
         );
 
-        return response()->json($artist, 201);
+        return new ArtistResource($artist);
     }
 }

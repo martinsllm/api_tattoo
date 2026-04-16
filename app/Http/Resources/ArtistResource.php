@@ -37,12 +37,7 @@ class ArtistResource extends JsonResource
             'styles' => $this->styles->pluck('name'),
             'tags' => $this->tags->pluck('name'),
 
-            'images' => $this->images->map(function ($img) {
-                return [
-                    'id' => $img->id,
-                    'url' => $img->url,
-                ];
-            }),
+            'images' => ArtistImageResource::collection($this->images),
 
             'created_at' => $this->created_at,
         ];
