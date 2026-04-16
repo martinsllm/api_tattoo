@@ -7,10 +7,17 @@ use App\Http\Requests\StoreArtistRequest;
 use App\Http\Resources\ArtistResource;
 use App\Models\ArtistProfile;
 use App\Models\User;
+use App\Services\ArtistService;
 use Illuminate\Http\Request;
 
 class ArtistController extends Controller
 {
+
+    public function __construct(private ArtistService $artistService)
+    {
+        $this->artistService = $artistService;
+    }
+
     public function index(Request $request)
     {
         $lat = $request->input('lat');
@@ -72,26 +79,13 @@ class ArtistController extends Controller
 
     public function store(StoreArtistRequest $request)
     {
-        $user = User::factory()->create();
-
-        if (!$user) {
+        try {
+            $artist = $this->artistService->create($request->validated());
+            return new ArtistResource($artist);
+        } catch (\Exception $e) {
             return response()->json([
-                'message' => 'No users found. Create a user first.'
+                'message' => $e->getMessage()
             ], 400);
         }
-
-        // Um perfil por usuário
-        if ($user->artistProfile) {
-            return response()->json([
-                'message' => 'User already has an artist profile'
-            ], 400);
-        }
-
-        // Criar perfil
-        $artist = $user->artistProfile()->create(
-            $request->validated()
-        );
-
-        return new ArtistResource($artist);
     }
 }
