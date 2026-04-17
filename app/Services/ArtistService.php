@@ -3,14 +3,13 @@
 namespace App\Services;
 
 use App\Models\ArtistProfile;
-use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class ArtistService
 {
     public function create(array $data): ArtistProfile
     {
-        // modo teste
-        $user = User::factory()->create();
+        $user = Auth::user();
 
         if ($user->artistProfile) {
             throw new \Exception('User already has an artist profile');
