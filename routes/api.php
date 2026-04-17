@@ -17,7 +17,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/artists/{id}', [ArtistController::class, 'update']);
 
     Route::post('/artists/{id}/images', [ArtistImageController::class, 'store']);
-
+    Route::delete('/images/{id}', [ArtistImageController::class, 'destroy']);
 
 });
 

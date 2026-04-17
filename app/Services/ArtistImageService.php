@@ -24,4 +24,20 @@ class ArtistImageService
 
         return $images;
     }
+
+    public function delete($imageId, $user)
+    {
+        $image = ArtistImage::findOrFail($imageId);
+
+        // Verifica se o usuário é o dono do perfil
+        if($image->artistProfile->user_id !== $user->id) {
+            throw new \Exception('Unauthorized');
+        }
+
+        \Storage::disk('public')->delete($image->image_url);
+
+        $image->delete();
+
+        return true;
+    }
 }

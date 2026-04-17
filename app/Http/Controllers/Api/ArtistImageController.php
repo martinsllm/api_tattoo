@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreImageRequest;
 use App\Http\Resources\ArtistImageResource;
 use App\Services\ArtistImageService;
+use Illuminate\Support\Facades\Auth;
 
 class ArtistImageController extends Controller
 {
@@ -19,5 +20,15 @@ class ArtistImageController extends Controller
     {
         $images = $this->artistImageService->multipleUpload($id, $request->file('images', []));
         return ArtistImageResource::collection(collect($images));
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $this->artistImageService->delete($id, Auth::user());
+            return response()->json(['message' => 'Image deleted successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 403);
+        }
     }
 }
