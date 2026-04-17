@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreArtistRequest;
+use App\Http\Requests\UpdateArtistRequest;
 use App\Http\Resources\ArtistResource;
 use App\Models\ArtistProfile;
 use App\Models\User;
 use App\Services\ArtistService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ArtistController extends Controller
 {
@@ -86,6 +88,18 @@ class ArtistController extends Controller
             return response()->json([
                 'message' => $e->getMessage()
             ], 400);
+        }
+    }
+
+    public function update(UpdateArtistRequest $request, $id)
+    {
+        try {
+            $artist = $this->artistService->update($id, Auth::user(), $request->validated());
+            return new ArtistResource($artist);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 403);
         }
     }
 }

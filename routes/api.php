@@ -14,8 +14,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/artists', [ArtistController::class, 'index']);
     Route::get('/artists/{id}', [ArtistController::class, 'show']);
     Route::post('/artists', [ArtistController::class, 'store']);
+    Route::put('/artists/{id}', [ArtistController::class, 'update']);
 
     Route::post('/artists/{id}/images', [ArtistImageController::class, 'store']);
+
+
 });
 
 
