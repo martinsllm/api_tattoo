@@ -4,12 +4,18 @@ namespace App\Services;
 
 use App\Models\ArtistImage;
 use App\Models\ArtistProfile;
+use Illuminate\Support\Facades\Auth;
 
 class ArtistImageService
 {
     public function multipleUpload($artistId, $files)
     {
         $artist = ArtistProfile::findOrFail($artistId);
+
+        // Verifica se o usuário é o dono do perfil
+        if($artist->user_id !== Auth::user()->id) {
+            throw new \Exception('Unauthorized');
+        }
 
         $images = [];
 

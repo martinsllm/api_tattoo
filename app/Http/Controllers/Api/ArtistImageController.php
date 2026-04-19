@@ -18,8 +18,12 @@ class ArtistImageController extends Controller
 
     public function store(StoreImageRequest $request, $id)
     {
-        $images = $this->artistImageService->multipleUpload($id, $request->file('images', []));
-        return ArtistImageResource::collection(collect($images));
+        try {
+            $images = $this->artistImageService->multipleUpload($id, $request->file('images', []));
+            return ArtistImageResource::collection(collect($images));
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 403);
+        }
     }
 
     public function destroy($id)
