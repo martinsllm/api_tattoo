@@ -26,6 +26,18 @@ class ArtistImageController extends Controller
         }
     }
 
+    public function setMain($id)
+    {
+        try {
+            $image = $this->artistImageService->setMain($id, Auth::user());
+            return new ArtistImageResource($image);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 403);
+        }
+    }
+
     public function destroy($id)
     {
         try {

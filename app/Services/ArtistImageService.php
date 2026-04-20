@@ -31,6 +31,24 @@ class ArtistImageService
         return $images;
     }
 
+    public function setMain($imageId, $user)
+    {
+        $image = ArtistImage::findOrFail($imageId);
+
+        // Verifica se o usuário é o dono do perfil
+        if($image->artistProfile->user_id !== $user->id) {
+            throw new \Exception('Unauthorized');
+        }
+
+        // Remove o status principal de todas as imagens do artista
+        ArtistImage::where('artist_profile_id', $image->artist_profile_id)->update(['is_main' => false]);
+
+        // Define a imagem como principal
+        $image->update(['is_main' => true]);
+
+        return $image;
+    }
+
     public function delete($imageId, $user)
     {
         $image = ArtistImage::findOrFail($imageId);

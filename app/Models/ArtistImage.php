@@ -11,6 +11,7 @@ class ArtistImage extends Model
         'image_url',
         'thumbnail_url',
         'description',
+        'is_main',
     ];
 
     public function artistProfile()

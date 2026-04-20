@@ -17,6 +17,7 @@ class ArtistImageResource extends JsonResource
         return [
             'id' => $this->id,
             'url' => asset('storage/' . $this->path),
+            'is_main' => $this->is_main,
             'created_at' => $this->created_at,
         ];
     }
