@@ -94,7 +94,7 @@ class ArtistController extends Controller
     public function update(UpdateArtistRequest $request, $id)
     {
         try {
-            $artist = $this->artistService->update($id, Auth::user(), $request->validated());
+            $artist = $this->artistService->update($id, $request->validated());
             return new ArtistResource($artist);
         } catch (\Exception $e) {
             return response()->json([

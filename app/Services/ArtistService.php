@@ -11,15 +11,26 @@ class ArtistService
     {
         $user = Auth::user();
 
+        $styles = $data['styles'] ?? [];
+        unset($data['styles']);
+
         if ($user->artistProfile) {
             throw new \Exception('User already has an artist profile');
         }
 
-        return $user->artistProfile()->create($data);
+        $artist = $user->artistProfile()->create($data);
+
+        if (!empty($styles)) {
+            $artist->styles()->sync($styles);
+        }
+
+        return $artist;
     }
 
-    public function update($artistId, $user, array $data): ArtistProfile
+    public function update($artistId, array $data): ArtistProfile
     {
+        $user = Auth::user();
+
         $artist = ArtistProfile::findOrFail($artistId);
 
         // Verifica se o usuário é o dono do perfil
@@ -27,8 +38,15 @@ class ArtistService
             throw new \Exception('Unauthorized');
         }
 
+        $styles = $data['styles'] ?? null;
+        unset($data['styles']);
+
         $artist->update($data);
-        
+
+        if (!is_null($styles)) {
+            $artist->styles()->sync($styles);
+        }
+
         return $artist;
     }
 }

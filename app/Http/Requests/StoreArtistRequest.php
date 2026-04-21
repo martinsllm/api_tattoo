@@ -32,6 +32,8 @@ class StoreArtistRequest extends FormRequest
             'state' => 'required|string|max:100',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
+            'styles' => 'array',
+            'styles.*' => 'exists:styles,id',
         ];
     }
 }
