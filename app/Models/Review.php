@@ -13,7 +13,7 @@ class Review extends Model
         'comment',
     ];
 
-    public function artistProfile()
+    public function artist()
     {
         return $this->belongsTo(ArtistProfile::class);
     }

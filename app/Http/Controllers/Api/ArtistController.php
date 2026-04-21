@@ -7,10 +7,8 @@ use App\Http\Requests\StoreArtistRequest;
 use App\Http\Requests\UpdateArtistRequest;
 use App\Http\Resources\ArtistResource;
 use App\Models\ArtistProfile;
-use App\Models\User;
 use App\Services\ArtistService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class ArtistController extends Controller
 {
