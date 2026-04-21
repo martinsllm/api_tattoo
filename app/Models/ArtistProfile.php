@@ -42,7 +42,8 @@ class ArtistProfile extends Model
 
     public function favoritedBy()
     {
-        return $this->hasMany(Favorite::class);
+        return $this->belongsToMany(User::class,'favorites')
+        ->withTimestamps();
     }
 
     public function tags()

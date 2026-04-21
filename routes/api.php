@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\ArtistController;
 use App\Http\Controllers\Api\ArtistImageController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\ReviewController;
 use Illuminate\Support\Facades\Route;
 
@@ -23,6 +24,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/reviews', [ReviewController::class, 'store']);
     Route::get('/artists/{id}/reviews', [ReviewController::class, 'index']);
+
+    Route::post('/artists/{id}/favorite', [FavoriteController::class, 'toggle']);
 
 });
 
