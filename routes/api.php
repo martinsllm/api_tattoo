@@ -26,6 +26,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/artists/{id}/reviews', [ReviewController::class, 'index']);
 
     Route::post('/artists/{id}/favorite', [FavoriteController::class, 'toggle']);
+    Route::get('/favorites', [FavoriteController::class, 'index']);
 
 });
 
