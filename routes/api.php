@@ -22,6 +22,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/images/{id}/main', [ArtistImageController::class, 'setMain']);
 
     Route::post('/reviews', [ReviewController::class, 'store']);
+    Route::get('/artists/{id}/reviews', [ReviewController::class, 'index']);
 
 });
 
