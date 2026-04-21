@@ -50,6 +50,11 @@ class ArtistProfile extends Model
         return $this->belongsToMany(Tag::class, 'artist_tag');
     }
 
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
     public function scopeWithDistance($query, $lat, $lng)
     {
         return $query->select('artist_profiles.*')->selectRaw("

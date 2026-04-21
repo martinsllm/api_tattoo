@@ -33,7 +33,7 @@ class ArtistController extends Controller
             'tags',
             'images'
         ])
-        ->where('is_active', true);
+        ->active();
 
         // média de avaliação
         $query->withAvg('reviews', 'rating');
@@ -45,18 +45,18 @@ class ArtistController extends Controller
         }
 
         // Filtro por styles
-        if (!empty($styles)) {
+        if ($request->filled('styles')) {
             $query->filterStyles($styles);
         }
 
         // Filtro por tags
-        if (!empty($tags)) {
+        if ($request->filled('tags')) {
             $query->filterTags($tags);
         }
 
         // Ordenação por rating (se não tiver geo)
-        if (is_null($lat) || is_null($lng)) {
-            $query->orderByDesc('reviews_avg_rating');
+        if (!$lat || !$lng) {
+            $query->orderByDesc('reviews_avg_rating')->orderByDesc('id');
         }
 
         return ArtistResource::collection($query->paginate(10));
