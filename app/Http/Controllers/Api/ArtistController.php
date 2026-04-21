@@ -37,6 +37,7 @@ class ArtistController extends Controller
 
         // média de avaliação
         $query->withAvg('reviews', 'rating');
+        $query->withCount('reviews');
 
         // Geolocalização
         if (!is_null($lat) && !is_null($lng)) {
@@ -56,7 +57,8 @@ class ArtistController extends Controller
 
         // Ordenação por rating (se não tiver geo)
         if (!$lat || !$lng) {
-            $query->orderByDesc('reviews_avg_rating')->orderByDesc('id');
+            $query->orderByRaw('COALESCE(reviews_avg_rating, 0) DESC')
+                ->orderByDesc('reviews_count');
         }
 
         return ArtistResource::collection($query->paginate(10));
