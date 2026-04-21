@@ -34,6 +34,8 @@ class UpdateArtistRequest extends FormRequest
             'longitude' => 'sometimes|numeric',
             'styles' => 'array',
             'styles.*' => 'exists:styles,id',
+            'tags' => 'array',
+            'tags.*' => 'exists:tags,id',
         ];
     }
 }

@@ -12,7 +12,8 @@ class ArtistService
         $user = Auth::user();
 
         $styles = $data['styles'] ?? [];
-        unset($data['styles']);
+        $tags = $data['tags'] ?? [];
+        unset($data['styles'], $data['tags']);
 
         if ($user->artistProfile) {
             throw new \Exception('User already has an artist profile');
@@ -22,6 +23,10 @@ class ArtistService
 
         if (!empty($styles)) {
             $artist->styles()->sync($styles);
+        }
+
+        if (!empty($tags)) {
+            $artist->tags()->sync($tags);
         }
 
         return $artist;
@@ -39,12 +44,17 @@ class ArtistService
         }
 
         $styles = $data['styles'] ?? null;
-        unset($data['styles']);
+        $tags = $data['tags'] ?? null;
+        unset($data['styles'], $data['tags']);
 
         $artist->update($data);
 
         if (!is_null($styles)) {
             $artist->styles()->sync($styles);
+        }
+
+        if (!is_null($tags)) {
+            $artist->tags()->sync($tags);
         }
 
         return $artist;
