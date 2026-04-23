@@ -34,14 +34,7 @@ class ArtistService
 
     public function update($artistId, array $data): ArtistProfile
     {
-        $user = Auth::user();
-
         $artist = ArtistProfile::findOrFail($artistId);
-
-        // Verifica se o usuário é o dono do perfil
-        if ($artist->user_id !== $user->id) {
-            throw new \Exception('Unauthorized');
-        }
 
         $styles = $data['styles'] ?? null;
         $tags = $data['tags'] ?? null;
