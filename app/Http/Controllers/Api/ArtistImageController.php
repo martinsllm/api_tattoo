@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreImageRequest;
 use App\Http\Resources\ArtistImageResource;
+use App\Models\ArtistImage;
+use App\Models\ArtistProfile;
 use App\Services\ArtistImageService;
 use Illuminate\Support\Facades\Auth;
 
@@ -18,33 +20,33 @@ class ArtistImageController extends Controller
 
     public function store(StoreImageRequest $request, $id)
     {
-        try {
-            $images = $this->artistImageService->multipleUpload($id, $request->file('images', []));
-            return ArtistImageResource::collection(collect($images));
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 403);
-        }
+        $artist = ArtistProfile::findOrFail($id);
+
+        $this->authorize('update', $artist);
+
+        $images = $this->artistImageService->multipleUpload($artist, $request->file('images', []));
+        
+        return ArtistImageResource::collection(collect($images));
     }
 
     public function setMain($id)
     {
-        try {
-            $image = $this->artistImageService->setMain($id, Auth::user());
-            return new ArtistImageResource($image);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ], 403);
-        }
+        $image = ArtistImage::findOrFail($id);
+
+        $this->authorize('update', $image);
+
+        $image = $this->artistImageService->setMain($image);
+        return new ArtistImageResource($image);
+       
     }
 
     public function destroy($id)
     {
-        try {
-            $this->artistImageService->delete($id, Auth::user());
-            return response()->json(['message' => 'Image deleted successfully']);
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 403);
-        }
+        $image = ArtistImage::findOrFail($id);
+
+        $this->authorize('delete', $image);
+
+        $this->artistImageService->delete($image);
+        return response()->json(['message' => 'Image deleted successfully']);
     }
 }

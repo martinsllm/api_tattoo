@@ -32,10 +32,8 @@ class ArtistService
         return $artist;
     }
 
-    public function update($artistId, array $data): ArtistProfile
+    public function update($artist, array $data): ArtistProfile
     {
-        $artist = ArtistProfile::findOrFail($artistId);
-
         $styles = $data['styles'] ?? null;
         $tags = $data['tags'] ?? null;
         unset($data['styles'], $data['tags']);

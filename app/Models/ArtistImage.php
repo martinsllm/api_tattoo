@@ -14,8 +14,8 @@ class ArtistImage extends Model
         'is_main',
     ];
 
-    public function artistProfile()
+    public function artist()
     {
-        return $this->belongsTo(ArtistProfile::class);
+        return $this->belongsTo(ArtistProfile::class, 'artist_profile_id');
     }
 }

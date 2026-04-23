@@ -3,20 +3,11 @@
 namespace App\Services;
 
 use App\Models\ArtistImage;
-use App\Models\ArtistProfile;
-use Illuminate\Support\Facades\Auth;
 
 class ArtistImageService
 {
-    public function multipleUpload($artistId, $files)
+    public function multipleUpload($artist, $files)
     {
-        $artist = ArtistProfile::findOrFail($artistId);
-
-        // Verifica se o usuário é o dono do perfil
-        if($artist->user_id !== Auth::user()->id) {
-            throw new \Exception('Unauthorized');
-        }
-
         $images = [];
 
         foreach ($files as $file) {
@@ -31,31 +22,21 @@ class ArtistImageService
         return $images;
     }
 
-    public function setMain($imageId, $user)
+    public function setMain($image)
     {
-        $image = ArtistImage::findOrFail($imageId);
+        // remove outras como main
+        $image->artist->images()->update(['is_main' => false]);
 
-        // Verifica se o usuário é o dono do perfil
-        if($image->artistProfile->user_id !== $user->id) {
-            throw new \Exception('Unauthorized');
-        }
-
-        // Remove o status principal de todas as imagens do artista
-        ArtistImage::where('artist_profile_id', $image->artist_profile_id)->update(['is_main' => false]);
-
-        // Define a imagem como principal
+        // define essa como principal
         $image->update(['is_main' => true]);
 
         return $image;
     }
 
-    public function delete($imageId, $user)
+    public function delete($image)
     {
-        $image = ArtistImage::findOrFail($imageId);
-
-        // Verifica se o usuário é o dono do perfil
-        if($image->artistProfile->user_id !== $user->id) {
-            throw new \Exception('Unauthorized');
+        if ($image->is_main) {
+            throw new \DomainException('Cannot delete main image');
         }
 
         \Storage::disk('public')->delete($image->image_url);

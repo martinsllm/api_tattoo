@@ -97,7 +97,7 @@ class ArtistController extends Controller
 
         $this->authorize('update', $artist);
 
-        $artist = $this->artistService->update($id, $request->validated());
+        $artist = $this->artistService->update($artist, $request->validated());
 
         return new ArtistResource($artist);
     }
