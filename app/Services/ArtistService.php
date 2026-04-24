@@ -16,7 +16,7 @@ class ArtistService
         unset($data['styles'], $data['tags']);
 
         if ($user->artistProfile) {
-            throw new \Exception('User already has an artist profile');
+            throw new \DomainException('User already has an artist profile');
         }
 
         $artist = $user->artistProfile()->create($data);
