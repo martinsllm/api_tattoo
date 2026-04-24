@@ -11,5 +11,4 @@ class ArtistProfilePolicy
     {
         return $user->id === $artist->user_id;
     }
-
 }

@@ -12,13 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('artist_style', function (Blueprint $table) {
-             $table->foreignId('artist_profile_id')
-                  ->constrained()
-                  ->cascadeOnDelete();
+            $table->foreignId('artist_profile_id')
+                ->constrained()
+                ->cascadeOnDelete();
 
             $table->foreignId('style_id')
-                  ->constrained()
-                  ->cascadeOnDelete();
+                ->constrained()
+                ->cascadeOnDelete();
 
             // evita duplicação (mesmo estilo 2x pro mesmo artista)
             $table->primary(['artist_profile_id', 'style_id']);

@@ -15,12 +15,12 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('artist_profile_id')
-                  ->constrained()
-                  ->cascadeOnDelete();
+                ->constrained()
+                ->cascadeOnDelete();
 
             $table->foreignId('user_id')
-                  ->constrained()
-                  ->cascadeOnDelete();
+                ->constrained()
+                ->cascadeOnDelete();
 
             $table->unsignedTinyInteger('rating'); // 1 a 5
             $table->text('comment')->nullable();

@@ -21,11 +21,11 @@ class ArtistService
 
         $artist = $user->artistProfile()->create($data);
 
-        if (!empty($styles)) {
+        if (! empty($styles)) {
             $artist->styles()->sync($styles);
         }
 
-        if (!empty($tags)) {
+        if (! empty($tags)) {
             $artist->tags()->sync($tags);
         }
 
@@ -40,11 +40,11 @@ class ArtistService
 
         $artist->update($data);
 
-        if (!is_null($styles)) {
+        if (! is_null($styles)) {
             $artist->styles()->sync($styles);
         }
 
-        if (!is_null($tags)) {
+        if (! is_null($tags)) {
             $artist->tags()->sync($tags);
         }
 

@@ -12,7 +12,6 @@ use App\Services\ArtistImageService;
 
 class ArtistImageController extends Controller
 {
-
     public function __construct(private ArtistImageService $artistImageService)
     {
         $this->artistImageService = $artistImageService;
@@ -25,7 +24,7 @@ class ArtistImageController extends Controller
         $this->authorize('update', $artist);
 
         $images = $this->artistImageService->multipleUpload($artist, $request->file('images', []));
-        
+
         return ApiResponse::success(ArtistImageResource::collection($images), 'Images uploaded successfully', 201);
     }
 
@@ -36,8 +35,9 @@ class ArtistImageController extends Controller
         $this->authorize('update', $image);
 
         $image = $this->artistImageService->setMain($image);
+
         return ApiResponse::success(new ArtistImageResource($image), 'Main image set successfully');
-       
+
     }
 
     public function destroy($id)
@@ -47,6 +47,7 @@ class ArtistImageController extends Controller
         $this->authorize('delete', $image);
 
         $this->artistImageService->delete($image);
+
         return ApiResponse::success(null, 'Image deleted successfully');
     }
 }

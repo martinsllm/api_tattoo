@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('artist_tag', function (Blueprint $table) {
             $table->foreignId('artist_profile_id')
-                  ->constrained()
-                  ->cascadeOnDelete();
+                ->constrained()
+                ->cascadeOnDelete();
 
             $table->foreignId('tag_id')
-                  ->constrained()
-                  ->cascadeOnDelete();
+                ->constrained()
+                ->cascadeOnDelete();
 
             $table->primary(['artist_profile_id', 'tag_id']);
         });

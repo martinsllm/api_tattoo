@@ -20,7 +20,7 @@ class AuthController extends Controller
 
         return ApiResponse::success([
             'user' => new UserResource($user),
-            'token' => $token
+            'token' => $token,
         ]);
     }
 
@@ -28,7 +28,7 @@ class AuthController extends Controller
     {
         $credentials = $request->only('email', 'password');
 
-        if (!Auth::attempt($credentials)) {
+        if (! Auth::attempt($credentials)) {
             return ApiResponse::error('Invalid credentials', 401);
         }
 
@@ -36,13 +36,14 @@ class AuthController extends Controller
 
         return ApiResponse::success([
             'user' => Auth::user(),
-            'token' => $token
+            'token' => $token,
         ]);
     }
 
     public function logout()
     {
         Auth::user()->tokens()->delete();
+
         return ApiResponse::success(null, 'Logged out successfully');
     }
 }

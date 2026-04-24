@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('artist_profile_id')
-                  ->constrained()
-                  ->cascadeOnDelete();
+                ->constrained()
+                ->cascadeOnDelete();
 
             $table->string('image_url'); // caminho ou URL da imagem
             $table->string('thumbnail_url')->nullable(); // opcional

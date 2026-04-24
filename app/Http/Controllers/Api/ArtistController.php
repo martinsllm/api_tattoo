@@ -13,7 +13,6 @@ use Illuminate\Http\Request;
 
 class ArtistController extends Controller
 {
-
     public function __construct(private ArtistService $artistService)
     {
         $this->artistService = $artistService;
@@ -23,7 +22,7 @@ class ArtistController extends Controller
     {
         $lat = $request->input('lat');
         $lng = $request->input('lng');
-        $radius = $request->input('radius',10);
+        $radius = $request->input('radius', 10);
 
         $styles = $request->input('styles'); // array
         $tags = $request->input('tags');     // array
@@ -32,18 +31,18 @@ class ArtistController extends Controller
             'user',
             'styles',
             'tags',
-            'images'
+            'images',
         ])
-        ->active();
+            ->active();
 
         // média de avaliação
         $query->withAvg('reviews', 'rating');
         $query->withCount('reviews');
 
         // Geolocalização
-        if (!is_null($lat) && !is_null($lng)) {
+        if (! is_null($lat) && ! is_null($lng)) {
             $query->withDistance($lat, $lng)
-              ->withinRadius($radius);
+                ->withinRadius($radius);
         }
 
         // Filtro por styles
@@ -57,7 +56,7 @@ class ArtistController extends Controller
         }
 
         // Ordenação por rating (se não tiver geo)
-        if (!$lat || !$lng) {
+        if (! $lat || ! $lng) {
             $query->orderByRaw('COALESCE(reviews_avg_rating, 0) DESC')
                 ->orderByDesc('reviews_count');
         }
@@ -72,10 +71,10 @@ class ArtistController extends Controller
             'styles',
             'tags',
             'images',
-            'reviews.user'
+            'reviews.user',
         ])
-        ->where('is_active', true)
-        ->findOrFail($id);  
+            ->where('is_active', true)
+            ->findOrFail($id);
 
         return ApiResponse::success(new ArtistResource($artist), 'Artist retrieved successfully');
     }
@@ -83,7 +82,7 @@ class ArtistController extends Controller
     public function store(StoreArtistRequest $request)
     {
         $artist = $this->artistService->create($request->validated());
-        
+
         return ApiResponse::success(new ArtistResource($artist), 'Artist created successfully');
     }
 

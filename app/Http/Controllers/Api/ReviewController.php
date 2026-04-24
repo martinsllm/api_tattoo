@@ -21,7 +21,7 @@ class ReviewController extends Controller
     {
         $artist = ArtistProfile::find($artistId);
 
-        if(!$artist){
+        if (! $artist) {
             return ApiResponse::error('Artist not found', 404);
         }
 
@@ -36,7 +36,7 @@ class ReviewController extends Controller
     public function store(StoreReviewRequest $request)
     {
         $review = $this->reviewService->create($request->validated());
-        
+
         return ApiResponse::success($review, 'Review created successfully', 201);
     }
 }

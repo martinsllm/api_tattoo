@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Auth;
 
 class ReviewService
 {
-
     public function create(array $data)
     {
         $user = Auth::user();
@@ -20,7 +19,7 @@ class ReviewService
             throw new \DomainException('You cannot review yourself.');
         }
 
-        //impedir avaliações duplicadas
+        // impedir avaliações duplicadas
         $existingReview = $artist->reviews()->where('user_id', $user->id)->first();
 
         if ($existingReview) {
@@ -35,5 +34,4 @@ class ReviewService
         ]);
 
     }
-    
 }

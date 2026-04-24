@@ -39,12 +39,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (ValidationException $e, $request) {
             return response()->json([
                 'message' => 'Validation error',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
         });
 
         // regra de negócio
-        $exceptions->render(function (\DomainException $e, $request) {
+        $exceptions->render(function (DomainException $e, $request) {
             return ApiResponse::error($e->getMessage(), 400);
         });
     })->create();

@@ -8,14 +8,14 @@ class ApiResponse
     {
         return response()->json([
             'data' => $data,
-            'message' => $message
+            'message' => $message,
         ], $code);
     }
 
     public static function error($message = 'Error', $code = 400)
     {
         return response()->json([
-            'message' => $message
+            'message' => $message,
         ], $code);
     }
 }

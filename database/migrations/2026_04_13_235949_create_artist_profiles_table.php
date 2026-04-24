@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('user_id')
-                  ->constrained()
-                  ->cascadeOnDelete();
-            
+                ->constrained()
+                ->cascadeOnDelete();
+
             $table->string('studio_name')->nullable();
             $table->text('bio')->nullable();
 

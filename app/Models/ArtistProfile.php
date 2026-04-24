@@ -42,8 +42,8 @@ class ArtistProfile extends Model
 
     public function favoritedBy()
     {
-        return $this->belongsToMany(User::class,'favorites')
-        ->withTimestamps();
+        return $this->belongsToMany(User::class, 'favorites')
+            ->withTimestamps();
     }
 
     public function tags()
@@ -58,7 +58,7 @@ class ArtistProfile extends Model
 
     public function scopeWithDistance($query, $lat, $lng)
     {
-        return $query->select('artist_profiles.*')->selectRaw("
+        return $query->select('artist_profiles.*')->selectRaw('
             (6371 * acos(
                 cos(radians(?)) 
                 * cos(radians(latitude)) 
@@ -66,13 +66,13 @@ class ArtistProfile extends Model
                 + sin(radians(?)) 
                 * sin(radians(latitude))
             )) AS distance
-        ", [$lat, $lng, $lat]);
+        ', [$lat, $lng, $lat]);
     }
 
     public function scopeWithinRadius($query, $radius)
     {
         return $query->having('distance', '<=', $radius)
-                    ->orderBy('distance');
+            ->orderBy('distance');
     }
 
     public function scopeFilterStyles($query, $styles)

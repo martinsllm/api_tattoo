@@ -12,7 +12,7 @@ Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
-    
+
     Route::get('/artists', [ArtistController::class, 'index']);
     Route::get('/artists/{id}', [ArtistController::class, 'show']);
     Route::post('/artists', [ArtistController::class, 'store']);
@@ -29,5 +29,3 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/favorites', [FavoriteController::class, 'index']);
 
 });
-
-

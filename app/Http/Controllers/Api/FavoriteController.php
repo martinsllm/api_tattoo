@@ -15,18 +15,20 @@ class FavoriteController extends Controller
         $this->favoriteService = $favoriteService;
     }
 
-    public function index() {
+    public function index()
+    {
         $user = Auth::user();
 
         $favorites = $user->favorites()
             ->with(['styles', 'tags', 'images'])
             ->withAvg('reviews', 'rating')
             ->paginate(10);
-        
+
         return ApiResponse::success(ArtistResource::collection($favorites), 'Favorite artists retrieved successfully');
     }
 
-    public function toggle($artistId) {
+    public function toggle($artistId)
+    {
         $favorited = $this->favoriteService->toggle($artistId);
 
         $message = $favorited ? 'Added to favorites' : 'Removed from favorites';
