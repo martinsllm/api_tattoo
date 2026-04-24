@@ -30,13 +30,13 @@ class ReviewController extends Controller
             ->latest()
             ->paginate(10);
 
-        return ApiResponse::success(ReviewResource::collection($reviews));
+        return ApiResponse::success(ReviewResource::collection($reviews), 'Reviews retrieved successfully');
     }
 
     public function store(StoreReviewRequest $request)
     {
         $review = $this->reviewService->create($request->validated());
         
-        return ApiResponse::success($review, 201);
+        return ApiResponse::success($review, 'Review created successfully', 201);
     }
 }

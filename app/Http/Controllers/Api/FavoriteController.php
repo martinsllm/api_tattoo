@@ -23,10 +23,14 @@ class FavoriteController extends Controller
             ->withAvg('reviews', 'rating')
             ->paginate(10);
         
-        return ApiResponse::success(ArtistResource::collection($favorites));
+        return ApiResponse::success(ArtistResource::collection($favorites), 'Favorite artists retrieved successfully');
     }
 
     public function toggle($artistId) {
-        return ApiResponse::success($this->favoriteService->toggle($artistId));
+        $favorited = $this->favoriteService->toggle($artistId);
+
+        $message = $favorited ? 'Added to favorites' : 'Removed from favorites';
+
+        return ApiResponse::success(null, $message);
     }
 }

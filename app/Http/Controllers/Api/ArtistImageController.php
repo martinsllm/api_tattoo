@@ -26,7 +26,7 @@ class ArtistImageController extends Controller
 
         $images = $this->artistImageService->multipleUpload($artist, $request->file('images', []));
         
-        return ApiResponse::success(ArtistImageResource::collection($images), 201);
+        return ApiResponse::success(ArtistImageResource::collection($images), 'Images uploaded successfully', 201);
     }
 
     public function setMain($id)
@@ -36,7 +36,7 @@ class ArtistImageController extends Controller
         $this->authorize('update', $image);
 
         $image = $this->artistImageService->setMain($image);
-        return ApiResponse::success(new ArtistImageResource($image));
+        return ApiResponse::success(new ArtistImageResource($image), 'Main image set successfully');
        
     }
 
@@ -47,6 +47,6 @@ class ArtistImageController extends Controller
         $this->authorize('delete', $image);
 
         $this->artistImageService->delete($image);
-        return ApiResponse::success(['message' => 'Image deleted successfully']);
+        return ApiResponse::success(null, 'Image deleted successfully');
     }
 }

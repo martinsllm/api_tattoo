@@ -62,7 +62,7 @@ class ArtistController extends Controller
                 ->orderByDesc('reviews_count');
         }
 
-        return ApiResponse::success(ArtistResource::collection($query->paginate(10)));
+        return ApiResponse::success(ArtistResource::collection($query->paginate(10)), 'Artists retrieved successfully');
     }
 
     public function show($id)
@@ -77,14 +77,14 @@ class ArtistController extends Controller
         ->where('is_active', true)
         ->findOrFail($id);  
 
-        return ApiResponse::success(new ArtistResource($artist));
+        return ApiResponse::success(new ArtistResource($artist), 'Artist retrieved successfully');
     }
 
     public function store(StoreArtistRequest $request)
     {
         $artist = $this->artistService->create($request->validated());
         
-        return ApiResponse::success(new ArtistResource($artist));
+        return ApiResponse::success(new ArtistResource($artist), 'Artist created successfully');
     }
 
     public function update(UpdateArtistRequest $request, $id)
@@ -95,6 +95,6 @@ class ArtistController extends Controller
 
         $artist = $this->artistService->update($artist, $request->validated());
 
-        return ApiResponse::success(new ArtistResource($artist));
+        return ApiResponse::success(new ArtistResource($artist), 'Artist updated successfully');
     }
 }

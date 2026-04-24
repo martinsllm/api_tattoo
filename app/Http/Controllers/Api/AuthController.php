@@ -43,6 +43,6 @@ class AuthController extends Controller
     public function logout()
     {
         Auth::user()->tokens()->delete();
-        return ApiResponse::success(['message' => 'Logged out successfully']);
+        return ApiResponse::success(null, 'Logged out successfully');
     }
 }

@@ -18,12 +18,12 @@ class FavoriteService
 
         if ($user->favorites()->where('artist_profile_id', $artistId)->exists()) {
             $user->favorites()->detach($artistId);
-            return ['message' => 'Removed from favorites'];
+            return false;
         }
 
         $user->favorites()->attach($artistId);
 
-        return ['message' => 'Added to favorites'];
+        return true;
             
     }
 }
