@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreArtistRequest;
 use App\Http\Requests\UpdateArtistRequest;
@@ -61,7 +62,7 @@ class ArtistController extends Controller
                 ->orderByDesc('reviews_count');
         }
 
-        return ArtistResource::collection($query->paginate(10));
+        return ApiResponse::success(ArtistResource::collection($query->paginate(10)));
     }
 
     public function show($id)
@@ -76,14 +77,14 @@ class ArtistController extends Controller
         ->where('is_active', true)
         ->findOrFail($id);  
 
-        return new ArtistResource($artist);
+        return ApiResponse::success(new ArtistResource($artist));
     }
 
     public function store(StoreArtistRequest $request)
     {
         $artist = $this->artistService->create($request->validated());
         
-        return new ArtistResource($artist);
+        return ApiResponse::success(new ArtistResource($artist));
     }
 
     public function update(UpdateArtistRequest $request, $id)
@@ -94,6 +95,6 @@ class ArtistController extends Controller
 
         $artist = $this->artistService->update($artist, $request->validated());
 
-        return new ArtistResource($artist);
+        return ApiResponse::success(new ArtistResource($artist));
     }
 }

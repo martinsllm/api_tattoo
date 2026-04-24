@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreImageRequest;
 use App\Http\Resources\ArtistImageResource;
@@ -25,7 +26,7 @@ class ArtistImageController extends Controller
 
         $images = $this->artistImageService->multipleUpload($artist, $request->file('images', []));
         
-        return ArtistImageResource::collection(collect($images));
+        return ApiResponse::success(ArtistImageResource::collection($images), 201);
     }
 
     public function setMain($id)
@@ -35,7 +36,7 @@ class ArtistImageController extends Controller
         $this->authorize('update', $image);
 
         $image = $this->artistImageService->setMain($image);
-        return new ArtistImageResource($image);
+        return ApiResponse::success(new ArtistImageResource($image));
        
     }
 
@@ -46,6 +47,6 @@ class ArtistImageController extends Controller
         $this->authorize('delete', $image);
 
         $this->artistImageService->delete($image);
-        return response()->json(['message' => 'Image deleted successfully']);
+        return ApiResponse::success(['message' => 'Image deleted successfully']);
     }
 }

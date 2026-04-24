@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ArtistResource;
 use App\Services\FavoriteService;
@@ -22,10 +23,10 @@ class FavoriteController extends Controller
             ->withAvg('reviews', 'rating')
             ->paginate(10);
         
-        return ArtistResource::collection($favorites);
+        return ApiResponse::success(ArtistResource::collection($favorites));
     }
 
     public function toggle($artistId) {
-        return $this->favoriteService->toggle($artistId);
+        return ApiResponse::success($this->favoriteService->toggle($artistId));
     }
 }

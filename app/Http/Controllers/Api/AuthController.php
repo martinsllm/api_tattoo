@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Resources\UserResource;
@@ -17,7 +18,7 @@ class AuthController extends Controller
 
         $token = $user->createToken('api-token')->plainTextToken;
 
-        return response()->json([
+        return ApiResponse::success([
             'user' => new UserResource($user),
             'token' => $token
         ]);
@@ -28,12 +29,12 @@ class AuthController extends Controller
         $credentials = $request->only('email', 'password');
 
         if (!Auth::attempt($credentials)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+            return ApiResponse::error('Invalid credentials', 401);
         }
 
         $token = Auth::user()->createToken('api-token')->plainTextToken;
 
-        return response()->json([
+        return ApiResponse::success([
             'user' => Auth::user(),
             'token' => $token
         ]);
@@ -42,6 +43,6 @@ class AuthController extends Controller
     public function logout()
     {
         Auth::user()->tokens()->delete();
-        return response()->json(['message' => 'Logged out successfully'], 201);
+        return ApiResponse::success(['message' => 'Logged out successfully']);
     }
 }

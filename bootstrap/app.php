@@ -1,12 +1,13 @@
 <?php
 
-use App\Exceptions\Handler;
+use App\Helpers\ApiResponse;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -18,33 +19,29 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         //
     })
-    ->withExceptions(function ($exceptions): void {
-        // 403
+    ->withExceptions(function (Exceptions $exceptions): void {
+        // 401
         $exceptions->render(function (AuthorizationException $e, $request) {
-            return response()->json([
-                'message' => 'Unauthorized'
-            ], 403);
+            return ApiResponse::error('Unauthorized', 401);
+        });
+
+        // 403
+        $exceptions->render(function (AccessDeniedHttpException $e, $request) {
+            return ApiResponse::error('Forbidden', 403);
         });
 
         // 404
-        $exceptions->render(function (ModelNotFoundException $e, $request) {
-            return response()->json([
-                'message' => 'Resource not found'
-            ], 404);
+        $exceptions->render(function (NotFoundHttpException $e, $request) {
+            return ApiResponse::error('Resource not found', 404);
         });
 
         // 422
         $exceptions->render(function (ValidationException $e, $request) {
-            return response()->json([
-                'message' => 'Validation error',
-                'errors' => $e->errors()
-            ], 422);
+            return ApiResponse::error('Validation error', 422);
         });
 
         // regra de negócio
         $exceptions->render(function (\DomainException $e, $request) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ], 400);
+            return ApiResponse::error($e->getMessage(), 400);
         });
     })->create();

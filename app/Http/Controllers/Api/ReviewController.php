@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreReviewRequest;
 use App\Http\Resources\ReviewResource;
@@ -21,7 +22,7 @@ class ReviewController extends Controller
         $artist = ArtistProfile::find($artistId);
 
         if(!$artist){
-            return response()->json(['error' => 'Artist not found'], 404);
+            return ApiResponse::error('Artist not found', 404);
         }
 
         $reviews = Review::where('artist_profile_id', $artistId)
@@ -29,13 +30,13 @@ class ReviewController extends Controller
             ->latest()
             ->paginate(10);
 
-        return ReviewResource::collection($reviews);
+        return ApiResponse::success(ReviewResource::collection($reviews));
     }
 
     public function store(StoreReviewRequest $request)
     {
         $review = $this->reviewService->create($request->validated());
         
-        return response()->json($review, 201);
+        return ApiResponse::success($review, 201);
     }
 }
