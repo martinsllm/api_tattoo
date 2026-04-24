@@ -17,14 +17,14 @@ class ReviewService
         $artist = ArtistProfile::findOrFail($data['artist_profile_id']);
 
         if ($artist->user_id === $user->id) {
-            throw new \Exception('You cannot review yourself.');
+            throw new \DomainException('You cannot review yourself.');
         }
 
         //impedir avaliações duplicadas
         $existingReview = $artist->reviews()->where('user_id', $user->id)->first();
 
         if ($existingReview) {
-            throw new \Exception('You have already reviewed this artist.');
+            throw new \DomainException('You have already reviewed this artist.');
         }
 
         return Review::create([

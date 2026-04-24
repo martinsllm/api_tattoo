@@ -81,14 +81,9 @@ class ArtistController extends Controller
 
     public function store(StoreArtistRequest $request)
     {
-        try {
-            $artist = $this->artistService->create($request->validated());
-            return new ArtistResource($artist);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ], 400);
-        }
+        $artist = $this->artistService->create($request->validated());
+        
+        return new ArtistResource($artist);
     }
 
     public function update(UpdateArtistRequest $request, $id)

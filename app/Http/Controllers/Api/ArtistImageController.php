@@ -8,7 +8,6 @@ use App\Http\Resources\ArtistImageResource;
 use App\Models\ArtistImage;
 use App\Models\ArtistProfile;
 use App\Services\ArtistImageService;
-use Illuminate\Support\Facades\Auth;
 
 class ArtistImageController extends Controller
 {

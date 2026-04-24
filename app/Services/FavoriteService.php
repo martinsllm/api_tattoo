@@ -13,7 +13,7 @@ class FavoriteService
 
         // impedir autofavorito
         if ($artist->user_id === $user->id) {
-            throw new \Exception('You cannot favorite yourself');
+            throw new \DomainException('You cannot favorite yourself');
         }
 
         if ($user->favorites()->where('artist_profile_id', $artistId)->exists()) {

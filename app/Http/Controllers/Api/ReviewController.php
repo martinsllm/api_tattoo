@@ -34,11 +34,8 @@ class ReviewController extends Controller
 
     public function store(StoreReviewRequest $request)
     {
-        try {
-            $review = $this->reviewService->create($request->validated());
-            return response()->json($review, 201);
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 400);
-        }
+        $review = $this->reviewService->create($request->validated());
+        
+        return response()->json($review, 201);
     }
 }
