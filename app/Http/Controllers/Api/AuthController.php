@@ -35,7 +35,7 @@ class AuthController extends Controller
         $token = Auth::user()->createToken('api-token')->plainTextToken;
 
         return ApiResponse::success([
-            'user' => Auth::user(),
+            'user' => new UserResource(Auth::user()),
             'token' => $token,
         ]);
     }
