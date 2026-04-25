@@ -39,10 +39,15 @@ class ArtistController extends Controller
         $query->withAvg('reviews', 'rating');
         $query->withCount('reviews');
 
+        $hasGeo = ! is_null($lat) && ! is_null($lng);
+
         // Geolocalização
-        if (! is_null($lat) && ! is_null($lng)) {
+        if ($hasGeo) {
             $query->withDistance($lat, $lng)
                 ->withinRadius($radius);
+        } else {
+            $query->orderByRaw('COALESCE(reviews_avg_rating, 0) DESC')
+                ->orderByDesc('reviews_count');
         }
 
         // Filtro por styles
@@ -53,12 +58,6 @@ class ArtistController extends Controller
         // Filtro por tags
         if ($request->filled('tags')) {
             $query->filterTags($tags);
-        }
-
-        // Ordenação por rating (se não tiver geo)
-        if (! $lat || ! $lng) {
-            $query->orderByRaw('COALESCE(reviews_avg_rating, 0) DESC')
-                ->orderByDesc('reviews_count');
         }
 
         return ApiResponse::success(ArtistResource::collection($query->paginate(10)), 'Artists retrieved successfully');

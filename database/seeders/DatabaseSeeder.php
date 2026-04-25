@@ -21,9 +21,9 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         // 🔐 Roles
-        Role::create(['name' => 'admin']);
-        Role::create(['name' => 'artist']);
-        Role::create(['name' => 'client']);
+        Role::firstOrCreate(['name' => 'admin']);
+        Role::firstOrCreate(['name' => 'artist']);
+        Role::firstOrCreate(['name' => 'client']);
 
         // 🎨 Styles
         $styles = [
@@ -35,7 +35,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($styles as $style) {
-            Style::create(['name' => $style]);
+            Style::firstOrCreate(['name' => $style]);
         }
 
         // 🏷️ Tags
@@ -48,7 +48,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($tags as $tag) {
-            Tag::create(['name' => $tag]);
+            Tag::firstOrCreate(['name' => $tag]);
         }
     }
 }
