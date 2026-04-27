@@ -2,6 +2,7 @@
 
 use App\Helpers\ApiResponse;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -21,8 +22,8 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // 401
-        $exceptions->render(function (AuthorizationException $e, $request) {
-            return ApiResponse::error('Unauthorized', 401);
+        $exceptions->render(function (AuthenticationException $e, $request) {
+            return ApiResponse::error('Unauthenticated', 401);
         });
 
         // 403
