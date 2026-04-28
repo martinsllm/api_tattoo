@@ -1,7 +1,6 @@
 <?php
 
 use App\Helpers\ApiResponse;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -9,6 +8,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -29,6 +29,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // 403
         $exceptions->render(function (AccessDeniedHttpException $e, $request) {
             return ApiResponse::error('Forbidden', 403);
+        });
+
+        // 429
+        $exceptions->render(function (TooManyRequestsHttpException $e, $request) {
+            return ApiResponse::error('Too many requests', 429);
         });
 
         // 404
