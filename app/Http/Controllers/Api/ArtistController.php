@@ -4,12 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\FilterArtistsRequest;
 use App\Http\Requests\StoreArtistRequest;
 use App\Http\Requests\UpdateArtistRequest;
 use App\Http\Resources\ArtistResource;
 use App\Models\ArtistProfile;
 use App\Services\ArtistService;
-use Illuminate\Http\Request;
 
 class ArtistController extends Controller
 {
@@ -18,7 +18,7 @@ class ArtistController extends Controller
         $this->artistService = $artistService;
     }
 
-    public function index(Request $request)
+    public function index(FilterArtistsRequest $request)
     {
         $lat = $request->input('lat');
         $lng = $request->input('lng');
