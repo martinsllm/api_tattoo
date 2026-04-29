@@ -37,6 +37,6 @@ class ReviewController extends Controller
     {
         $review = $this->reviewService->create($request->validated());
 
-        return ApiResponse::success($review, 'Review created successfully', 201);
+        return ApiResponse::success(new ReviewResource($review), 'Review created successfully', 201);
     }
 }
