@@ -19,11 +19,7 @@ class ReviewController extends Controller
 
     public function index($artistId)
     {
-        $artist = ArtistProfile::find($artistId);
-
-        if (! $artist) {
-            return ApiResponse::error('Artist not found', 404);
-        }
+        ArtistProfile::findOrFail($artistId);
 
         $reviews = Review::where('artist_profile_id', $artistId)
             ->with('user')
