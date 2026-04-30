@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\LoginRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -24,7 +25,7 @@ class AuthController extends Controller
         ]);
     }
 
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
         $credentials = $request->only('email', 'password');
 
