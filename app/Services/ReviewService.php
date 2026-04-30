@@ -13,7 +13,7 @@ class ReviewService
         $user = Auth::user();
 
         // impedir autoavaliação
-        $artist = ArtistProfile::findOrFail($data['artist_profile_id']);
+        $artist = ArtistProfile::active()->findOrFail($data['artist_profile_id']);
 
         if ($artist->user_id === $user->id) {
             throw new \DomainException('You cannot review yourself.');
