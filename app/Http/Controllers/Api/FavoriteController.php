@@ -20,6 +20,7 @@ class FavoriteController extends Controller
         $user = Auth::user();
 
         $favorites = $user->favorites()
+            ->active()
             ->with(['styles', 'tags', 'images'])
             ->withAvg('reviews', 'rating')
             ->paginate(10);

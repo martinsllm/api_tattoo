@@ -11,7 +11,7 @@ class FavoriteService
     {
         $user = Auth::user();
 
-        $artist = ArtistProfile::findOrFail($artistId);
+        $artist = ArtistProfile::active()->findOrFail($artistId);
 
         // impedir autofavorito
         if ($artist->user_id === $user->id) {

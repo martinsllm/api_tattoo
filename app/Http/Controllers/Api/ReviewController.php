@@ -19,7 +19,7 @@ class ReviewController extends Controller
 
     public function index($artistId)
     {
-        ArtistProfile::findOrFail($artistId);
+        ArtistProfile::active()->findOrFail($artistId);
 
         $reviews = Review::where('artist_profile_id', $artistId)
             ->with('user')
