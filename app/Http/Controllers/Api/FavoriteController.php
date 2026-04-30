@@ -20,7 +20,7 @@ class FavoriteController extends Controller
         $user = Auth::user();
 
         $favorites = $user->favorites()
-            ->active()
+            ->where('artist_profiles.is_active', true)
             ->with(['styles', 'tags', 'images'])
             ->withAvg('reviews', 'rating')
             ->paginate(10);
