@@ -2,9 +2,15 @@
 
 namespace App\Http\Resources;
 
+use App\Models\ArtistProfile;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin ArtistProfile
+ *
+ * Requer eager load: user, styles, tags, images.
+ */
 class ArtistResource extends JsonResource
 {
     /**
@@ -24,20 +30,20 @@ class ArtistResource extends JsonResource
             'location' => [
                 'latitude' => $this->latitude,
                 'longitude' => $this->longitude,
-                'distance' => $this->when(isset($this->distance), round($this->distance, 2)),
+                'distance' => $this->when(isset($this->distance), fn () => round($this->distance, 2)),
             ],
 
-            'rating' => $this->when(isset($this->reviews_avg_rating), round($this->reviews_avg_rating, 1)),
+            'rating' => $this->when(isset($this->reviews_avg_rating), fn () => round($this->reviews_avg_rating, 1)),
 
-            'user' => [
+            'user' => $this->whenLoaded('user', fn () => [
                 'id' => $this->user?->id,
                 'name' => $this->user?->name,
-            ],
+            ]),
 
-            'styles' => $this->styles->pluck('name'),
-            'tags' => $this->tags->pluck('name'),
+            'styles' => $this->whenLoaded('styles', fn () => $this->styles->pluck('name')),
+            'tags' => $this->whenLoaded('tags', fn () => $this->tags->pluck('name')),
 
-            'images' => ArtistImageResource::collection($this->images),
+            'images' => $this->whenLoaded('images', fn () => ArtistImageResource::collection($this->images)),
 
             'created_at' => $this->created_at,
         ];
