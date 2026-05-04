@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\ArtistProfile;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ArtistService
 {
@@ -19,17 +20,19 @@ class ArtistService
             throw new \DomainException('User already has an artist profile');
         }
 
-        $artist = $user->artistProfile()->create($data);
+        return DB::transaction(function () use ($user, $data, $styles, $tags) {
+            $artist = $user->artistProfile()->create($data);
 
-        if (! empty($styles)) {
-            $artist->styles()->sync($styles);
-        }
+            if (! empty($styles)) {
+                $artist->styles()->sync($styles);
+            }
 
-        if (! empty($tags)) {
-            $artist->tags()->sync($tags);
-        }
+            if (! empty($tags)) {
+                $artist->tags()->sync($tags);
+            }
 
-        return $artist;
+            return $artist;
+        });
     }
 
     public function update($artist, array $data): ArtistProfile
@@ -38,16 +41,18 @@ class ArtistService
         $tags = $data['tags'] ?? null;
         unset($data['styles'], $data['tags']);
 
-        $artist->update($data);
+        return DB::transaction(function () use ($artist, $data, $styles, $tags) {
+            $artist->update($data);
 
-        if (! is_null($styles)) {
-            $artist->styles()->sync($styles);
-        }
+            if (! is_null($styles)) {
+                $artist->styles()->sync($styles);
+            }
 
-        if (! is_null($tags)) {
-            $artist->tags()->sync($tags);
-        }
+            if (! is_null($tags)) {
+                $artist->tags()->sync($tags);
+            }
 
-        return $artist;
+            return $artist;
+        });
     }
 }
