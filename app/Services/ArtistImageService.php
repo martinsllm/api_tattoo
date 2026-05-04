@@ -3,23 +3,36 @@
 namespace App\Services;
 
 use App\Models\ArtistImage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ArtistImageService
 {
     public function multipleUpload($artist, $files)
     {
-        $images = [];
+        $storedPaths = [];
 
-        foreach ($files as $file) {
-            $image_url = $file->store('artists', 'public');
+        try {
+            return DB::transaction(function () use ($artist, $files, &$storedPaths) {
+                $images = [];
 
-            $images[] = ArtistImage::create([
-                'artist_profile_id' => $artist->id,
-                'image_url' => $image_url,
-            ]);
+                foreach ($files as $file) {
+                    $image_url = $file->store('artists', 'public');
+                    $storedPaths[] = $image_url;
+
+                    $images[] = ArtistImage::create([
+                        'artist_profile_id' => $artist->id,
+                        'image_url' => $image_url,
+                    ]);
+                }
+
+                return $images;
+            });
+        } catch (\Throwable $e) {
+            Storage::disk('public')->delete($storedPaths);
+
+            throw $e;
         }
-
-        return $images;
     }
 
     public function setMain($image)
