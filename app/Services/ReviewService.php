@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\ArtistProfile;
 use App\Models\Review;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Auth;
 
 class ReviewService
@@ -26,12 +27,15 @@ class ReviewService
             throw new \DomainException('You have already reviewed this artist.');
         }
 
-        return Review::create([
-            'user_id' => $user->id,
-            'artist_profile_id' => $data['artist_profile_id'],
-            'rating' => $data['rating'],
-            'comment' => $data['comment'] ?? null,
-        ]);
-
+        try {
+            return Review::create([
+                'user_id' => $user->id,
+                'artist_profile_id' => $data['artist_profile_id'],
+                'rating' => $data['rating'],
+                'comment' => $data['comment'] ?? null,
+            ]);
+        } catch (UniqueConstraintViolationException $e) {
+            throw new \DomainException('You have already reviewed this artist.');
+        }
     }
 }
