@@ -2,10 +2,15 @@
 
 namespace App\Models;
 
+use Database\Factories\ArtistProfileFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ArtistProfile extends Model
 {
+    /** @use HasFactory<ArtistProfileFactory> */
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
         'studio_name',
