@@ -127,4 +127,57 @@ class ArtistImageControllerTest extends TestCase
         $this->assertDatabaseCount('artist_images', 0);
         $this->assertEmpty(Storage::disk('public')->files('artists'));
     }
+
+    public function test_set_main_promotes_target_image_and_demotes_previous(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $artist = ArtistProfile::factory()->for($user)->create();
+
+        $previousMain = ArtistImage::factory()->for($artist, 'artist')->main()->create();
+        $target = ArtistImage::factory()->for($artist, 'artist')->create();
+
+        $response = $this->patchJson("/api/images/{$target->id}/main");
+
+        $response->assertOk()
+            ->assertJsonPath('data.id', $target->id)
+            ->assertJsonPath('data.is_main', true);
+
+        $this->assertDatabaseHas('artist_images', [
+            'id' => $target->id,
+            'is_main' => true,
+        ]);
+
+        $this->assertDatabaseHas('artist_images', [
+            'id' => $previousMain->id,
+            'is_main' => false,
+        ]);
+    }
+
+    public function test_set_main_rejects_when_image_is_not_owned_by_the_artist(): void
+    {
+        Storage::fake('public');
+
+        $owner = User::factory()->create();
+        $intruder = User::factory()->create();
+
+        $artist = ArtistProfile::factory()->for($owner)->create();
+
+        $image = ArtistImage::factory()->for($artist, 'artist')->create();
+        
+        Sanctum::actingAs($intruder);
+
+        $response = $this->patchJson("/api/images/{$image->id}/main");
+
+        $response->assertStatus(403)
+            ->assertJsonPath('message', 'Forbidden');
+
+        $this->assertDatabaseHas('artist_images', [
+            'id' => $image->id,
+            'is_main' => false,
+        ]);
+    }
 }
