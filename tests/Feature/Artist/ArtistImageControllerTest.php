@@ -1,0 +1,130 @@
+<?php
+
+namespace Tests\Feature\Artist;
+
+use App\Models\ArtistImage;
+use App\Models\ArtistProfile;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Laravel\Sanctum\Sanctum;
+use Tests\TestCase;
+
+class ArtistImageControllerTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_store_creates_artist_images_for_authenticated_user(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
+
+        $artist = ArtistProfile::factory()->for($user)->create();
+
+        $payload = [
+            'images' => [
+                UploadedFile::fake()->image('image1.jpg'),
+            ],
+        ];
+
+        $response = $this->postJson("/api/artists/{$artist->id}/images", $payload);
+
+        $response->assertStatus(201)
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => ['id', 'url', 'is_main', 'created_at'],
+                ],
+                'message',
+            ])
+            ->assertJsonCount(1, 'data');
+
+        $this->assertDatabaseCount('artist_images', 1);
+
+        $image = ArtistImage::first();
+
+        $this->assertSame($artist->id, $image->artist_profile_id);
+        $this->assertFalse((bool) $image->is_main);
+        $this->assertStringStartsWith('artists/', $image->image_url);
+
+        Storage::disk('public')->assertExists($image->image_url);
+    }
+
+    public function test_store_rejects_when_user_is_not_the_artist(): void
+    {
+        Storage::fake('public');
+
+        $owner = User::factory()->create();
+        $intruder = User::factory()->create();
+
+        $artist = ArtistProfile::factory()->for($owner)->create();
+
+        Sanctum::actingAs($intruder);
+
+        $payload = [
+            'images' => [
+                UploadedFile::fake()->image('image1.jpg'),
+            ],
+        ];
+
+        $response = $this->postJson("/api/artists/{$artist->id}/images", $payload);
+
+        $response->assertStatus(403)
+            ->assertJson([
+                'message' => 'Forbidden',
+            ]);
+
+        $this->assertDatabaseCount('artist_images', 0);
+        $this->assertEmpty(Storage::disk('public')->files('artists'));
+    }
+
+    public function test_store_rejects_more_than_ten_images(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $artist = ArtistProfile::factory()->for($user)->create();
+
+        $images = [];
+        for ($i = 1; $i <= 11; $i++) {
+            $images[] = UploadedFile::fake()->image("image{$i}.jpg");
+        }
+
+        $response = $this->postJson("/api/artists/{$artist->id}/images", [
+            'images' => $images,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['images']);
+
+        $this->assertDatabaseCount('artist_images', 0);
+        $this->assertEmpty(Storage::disk('public')->files('artists'));
+    }
+
+    public function test_store_rejects_files_with_invalid_mime_type(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $artist = ArtistProfile::factory()->for($user)->create();
+
+        $response = $this->postJson("/api/artists/{$artist->id}/images", [
+            'images' => [
+                UploadedFile::fake()->create('document.pdf', 100, 'application/pdf'),
+            ],
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['images.0']);
+
+        $this->assertDatabaseCount('artist_images', 0);
+        $this->assertEmpty(Storage::disk('public')->files('artists'));
+    }
+}
