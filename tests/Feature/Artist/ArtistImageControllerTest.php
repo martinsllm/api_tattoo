@@ -167,7 +167,7 @@ class ArtistImageControllerTest extends TestCase
         $artist = ArtistProfile::factory()->for($owner)->create();
 
         $image = ArtistImage::factory()->for($artist, 'artist')->create();
-        
+
         Sanctum::actingAs($intruder);
 
         $response = $this->patchJson("/api/images/{$image->id}/main");
@@ -179,5 +179,76 @@ class ArtistImageControllerTest extends TestCase
             'id' => $image->id,
             'is_main' => false,
         ]);
+    }
+
+    public function test_destroy_removes_non_main_image_and_its_file(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $artist = ArtistProfile::factory()->for($user)->create();
+
+        $image = ArtistImage::factory()->for($artist, 'artist')->create();
+
+        Storage::disk('public')->put($image->image_url, 'fake-content');
+
+        $response = $this->deleteJson("/api/images/{$image->id}");
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'Image deleted successfully');
+
+        $this->assertDatabaseMissing('artist_images', ['id' => $image->id]);
+        Storage::disk('public')->assertMissing($image->image_url);
+    }
+
+    public function test_destroy_blocks_main_image_deletion(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $artist = ArtistProfile::factory()->for($user)->create();
+
+        $image = ArtistImage::factory()->for($artist, 'artist')->main()->create();
+
+        Storage::disk('public')->put($image->image_url, 'fake-content');
+
+        $response = $this->deleteJson("/api/images/{$image->id}");
+
+        $response->assertStatus(400)
+            ->assertJsonPath('message', 'Cannot delete main image');
+
+        $this->assertDatabaseHas('artist_images', [
+            'id' => $image->id,
+            'is_main' => true,
+        ]);
+        Storage::disk('public')->assertExists($image->image_url);
+    }
+
+    public function test_destroy_forbids_non_owner_from_deleting_image(): void
+    {
+        Storage::fake('public');
+
+        $owner = User::factory()->create();
+        $intruder = User::factory()->create();
+
+        $artist = ArtistProfile::factory()->for($owner)->create();
+
+        $image = ArtistImage::factory()->for($artist, 'artist')->create();
+
+        Storage::disk('public')->put($image->image_url, 'fake-content');
+
+        Sanctum::actingAs($intruder);
+
+        $response = $this->deleteJson("/api/images/{$image->id}");
+
+        $response->assertStatus(403)
+            ->assertJsonPath('message', 'Forbidden');
+
+        $this->assertDatabaseHas('artist_images', ['id' => $image->id]);
+        Storage::disk('public')->assertExists($image->image_url);
     }
 }
