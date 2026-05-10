@@ -20,6 +20,8 @@ class ArtistResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $isAuthenticated = $request->user() !== null;
+
         return [
             'id' => $this->id,
             'studio_name' => $this->studio_name,
@@ -28,8 +30,8 @@ class ArtistResource extends JsonResource
             'state' => $this->state,
 
             'location' => [
-                'latitude' => $this->latitude,
-                'longitude' => $this->longitude,
+                'latitude' => $isAuthenticated ? $this->latitude : null,
+                'longitude' => $isAuthenticated ? $this->longitude : null,
                 'distance' => $this->when(isset($this->distance), fn () => round($this->distance, 2)),
             ],
 

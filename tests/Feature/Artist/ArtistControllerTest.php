@@ -187,4 +187,56 @@ class ArtistControllerTest extends TestCase
             ->assertJsonPath('data.0.id', $artistBlackwork->id)
             ->assertJsonMissing(['studio_name' => 'Cores Vivas']);
     }
+
+    public function test_index_is_accessible_without_authentication(): void
+    {
+        ArtistProfile::factory()->create(['studio_name' => 'Estúdio Público']);
+
+        $response = $this->getJson(route('artist.index'));
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.studio_name', 'Estúdio Público');
+    }
+
+    public function test_show_is_accessible_without_authentication(): void
+    {
+        $artist = ArtistProfile::factory()->create(['studio_name' => 'Estúdio Público']);
+
+        $response = $this->getJson(route('artist.show', $artist->id));
+
+        $response->assertOk()
+            ->assertJsonPath('data.id', $artist->id)
+            ->assertJsonPath('data.studio_name', 'Estúdio Público');
+    }
+
+    public function test_show_hides_exact_coordinates_from_anonymous_users(): void
+    {
+        $artist = ArtistProfile::factory()->create([
+            'latitude' => -23.5505,
+            'longitude' => -46.6333,
+        ]);
+
+        $response = $this->getJson(route('artist.show', $artist->id));
+
+        $response->assertOk()
+            ->assertJsonPath('data.location.latitude', null)
+            ->assertJsonPath('data.location.longitude', null);
+    }
+
+    public function test_show_exposes_exact_coordinates_to_authenticated_users(): void
+    {
+        $artist = ArtistProfile::factory()->create([
+            'latitude' => -23.5505,
+            'longitude' => -46.6333,
+        ]);
+
+        Sanctum::actingAs(User::factory()->create());
+
+        $response = $this->getJson(route('artist.show', $artist->id));
+
+        $response->assertOk()
+            ->assertJsonPath('data.location.latitude', -23.5505)
+            ->assertJsonPath('data.location.longitude', -46.6333);
+    }
 }

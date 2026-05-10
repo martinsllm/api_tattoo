@@ -12,11 +12,14 @@ Route::middleware('throttle:10,1')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
 });
 
+Route::middleware('throttle:60,1')->group(function () {
+    Route::get('/artists', [ArtistController::class, 'index'])->name('artist.index');
+    Route::get('/artists/{id}', [ArtistController::class, 'show'])->name('artist.show');
+});
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
 
-    Route::get('/artists', [ArtistController::class, 'index'])->name('artist.index');
-    Route::get('/artists/{id}', [ArtistController::class, 'show'])->name('artist.show');
     Route::post('/artists', [ArtistController::class, 'store'])->name('artist.store');
     Route::put('/artists/{id}', [ArtistController::class, 'update'])->name('artist.update');
 
