@@ -25,6 +25,12 @@ class ArtistProfile extends Model
         'is_active',
     ];
 
+    protected $casts = [
+        'is_active' => 'boolean',
+        'latitude' => 'float',
+        'longitude' => 'float',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
