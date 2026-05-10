@@ -52,7 +52,7 @@ class ArtistImageService
             throw new \DomainException('Cannot delete main image');
         }
 
-        \Storage::disk('public')->delete($image->image_url);
+        Storage::disk('public')->delete($image->image_url);
 
         $image->delete();
 

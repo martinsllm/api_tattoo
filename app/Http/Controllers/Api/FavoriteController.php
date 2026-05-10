@@ -10,10 +10,7 @@ use Illuminate\Support\Facades\Auth;
 
 class FavoriteController extends Controller
 {
-    public function __construct(private FavoriteService $favoriteService)
-    {
-        $this->favoriteService = $favoriteService;
-    }
+    public function __construct(private FavoriteService $favoriteService) {}
 
     public function index()
     {

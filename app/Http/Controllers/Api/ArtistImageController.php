@@ -12,10 +12,7 @@ use App\Services\ArtistImageService;
 
 class ArtistImageController extends Controller
 {
-    public function __construct(private ArtistImageService $artistImageService)
-    {
-        $this->artistImageService = $artistImageService;
-    }
+    public function __construct(private ArtistImageService $artistImageService) {}
 
     public function store(StoreImageRequest $request, $id)
     {

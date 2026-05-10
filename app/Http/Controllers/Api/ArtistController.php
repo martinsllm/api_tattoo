@@ -13,10 +13,7 @@ use App\Services\ArtistService;
 
 class ArtistController extends Controller
 {
-    public function __construct(private ArtistService $artistService)
-    {
-        $this->artistService = $artistService;
-    }
+    public function __construct(private ArtistService $artistService) {}
 
     public function index(FilterArtistsRequest $request)
     {
