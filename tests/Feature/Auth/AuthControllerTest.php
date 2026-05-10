@@ -20,7 +20,7 @@ class AuthControllerTest extends TestCase
             'password_confirmation' => 'password123',
         ];
 
-        $response = $this->postJson('/api/register', $payload);
+        $response = $this->postJson(route('auth.register'), $payload);
 
         $response->assertOk()
             ->assertJsonStructure([
@@ -42,7 +42,7 @@ class AuthControllerTest extends TestCase
     {
         User::factory()->create(['email' => 'lucas@example.com']);
 
-        $response = $this->postJson('/api/register', [
+        $response = $this->postJson(route('auth.register'), [
             'name' => 'Lucas Tattoo',
             'email' => 'lucas@example.com',
             'password' => 'password123',
@@ -58,7 +58,7 @@ class AuthControllerTest extends TestCase
 
     public function test_register_fails_when_password_is_weak_or_unconfirmed(): void
     {
-        $response = $this->postJson('/api/register', [
+        $response = $this->postJson(route('auth.register'), [
             'name' => 'Lucas Tattoo',
             'email' => 'lucas@example.com',
             'password' => '123',
@@ -76,7 +76,7 @@ class AuthControllerTest extends TestCase
             'password' => 'password123',
         ]);
 
-        $response = $this->postJson('/api/login', [
+        $response = $this->postJson(route('auth.login'), [
             'email' => $user->email,
             'password' => 'password123',
         ]);
@@ -99,7 +99,7 @@ class AuthControllerTest extends TestCase
             'password' => 'password123',
         ]);
 
-        $response = $this->postJson('/api/login', [
+        $response = $this->postJson(route('auth.login'), [
             'email' => 'lucas@example.com',
             'password' => 'wrong-password',
         ]);
@@ -117,7 +117,7 @@ class AuthControllerTest extends TestCase
 
         Sanctum::actingAs($user);
 
-        $response = $this->postJson('/api/logout');
+        $response = $this->postJson(route('auth.logout'));
 
         $response->assertOk()
             ->assertJson([

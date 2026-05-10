@@ -31,7 +31,7 @@ class ArtistImageControllerTest extends TestCase
             ],
         ];
 
-        $response = $this->postJson("/api/artists/{$artist->id}/images", $payload);
+        $response = $this->postJson(route('artist.image.store', $artist->id), $payload);
 
         $response->assertStatus(201)
             ->assertJsonStructure([
@@ -70,7 +70,7 @@ class ArtistImageControllerTest extends TestCase
             ],
         ];
 
-        $response = $this->postJson("/api/artists/{$artist->id}/images", $payload);
+        $response = $this->postJson(route('artist.image.store', $artist->id), $payload);
 
         $response->assertStatus(403)
             ->assertJson([
@@ -95,7 +95,7 @@ class ArtistImageControllerTest extends TestCase
             $images[] = UploadedFile::fake()->image("image{$i}.jpg");
         }
 
-        $response = $this->postJson("/api/artists/{$artist->id}/images", [
+        $response = $this->postJson(route('artist.image.store', $artist->id), [
             'images' => $images,
         ]);
 
@@ -115,7 +115,7 @@ class ArtistImageControllerTest extends TestCase
 
         $artist = ArtistProfile::factory()->for($user)->create();
 
-        $response = $this->postJson("/api/artists/{$artist->id}/images", [
+        $response = $this->postJson(route('artist.image.store', $artist->id), [
             'images' => [
                 UploadedFile::fake()->create('document.pdf', 100, 'application/pdf'),
             ],
@@ -140,7 +140,7 @@ class ArtistImageControllerTest extends TestCase
         $previousMain = ArtistImage::factory()->for($artist, 'artist')->main()->create();
         $target = ArtistImage::factory()->for($artist, 'artist')->create();
 
-        $response = $this->patchJson("/api/images/{$target->id}/main");
+        $response = $this->patchJson(route('artist.image.set-main', $target->id));
 
         $response->assertOk()
             ->assertJsonPath('data.id', $target->id)
@@ -170,7 +170,7 @@ class ArtistImageControllerTest extends TestCase
 
         Sanctum::actingAs($intruder);
 
-        $response = $this->patchJson("/api/images/{$image->id}/main");
+        $response = $this->patchJson(route('artist.image.set-main', $image->id));
 
         $response->assertStatus(403)
             ->assertJsonPath('message', 'Forbidden');
@@ -194,7 +194,7 @@ class ArtistImageControllerTest extends TestCase
 
         Storage::disk('public')->put($image->image_url, 'fake-content');
 
-        $response = $this->deleteJson("/api/images/{$image->id}");
+        $response = $this->deleteJson(route('artist.image.destroy', $image->id));
 
         $response->assertOk()
             ->assertJsonPath('message', 'Image deleted successfully');
@@ -216,7 +216,7 @@ class ArtistImageControllerTest extends TestCase
 
         Storage::disk('public')->put($image->image_url, 'fake-content');
 
-        $response = $this->deleteJson("/api/images/{$image->id}");
+        $response = $this->deleteJson(route('artist.image.destroy', $image->id));
 
         $response->assertStatus(400)
             ->assertJsonPath('message', 'Cannot delete main image');
@@ -243,7 +243,7 @@ class ArtistImageControllerTest extends TestCase
 
         Sanctum::actingAs($intruder);
 
-        $response = $this->deleteJson("/api/images/{$image->id}");
+        $response = $this->deleteJson(route('artist.image.destroy', $image->id));
 
         $response->assertStatus(403)
             ->assertJsonPath('message', 'Forbidden');

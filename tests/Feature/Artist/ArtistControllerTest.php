@@ -28,7 +28,7 @@ class ArtistControllerTest extends TestCase
             'longitude' => -49.2733,
         ];
 
-        $response = $this->postJson('/api/artists', $payload);
+        $response = $this->postJson(route('artist.store'), $payload);
 
         $response->assertOk()
             ->assertJsonStructure([
@@ -59,7 +59,7 @@ class ArtistControllerTest extends TestCase
 
         Sanctum::actingAs($user);
 
-        $response = $this->postJson('/api/artists', [
+        $response = $this->postJson(route('artist.store'), [
             'studio_name' => 'Segundo Estúdio',
             'city' => 'Curitiba',
             'state' => 'PR',
@@ -84,7 +84,7 @@ class ArtistControllerTest extends TestCase
 
         Sanctum::actingAs($owner);
 
-        $response = $this->putJson("/api/artists/{$artist->id}", [
+        $response = $this->putJson(route('artist.update', $artist->id), [
             'studio_name' => 'Nome Novo',
         ]);
 
@@ -108,7 +108,7 @@ class ArtistControllerTest extends TestCase
 
         Sanctum::actingAs($intruder);
 
-        $response = $this->putJson("/api/artists/{$artist->id}", [
+        $response = $this->putJson(route('artist.update', $artist->id), [
             'studio_name' => 'Tentativa Invasor',
         ]);
 
@@ -131,7 +131,7 @@ class ArtistControllerTest extends TestCase
 
         Sanctum::actingAs(User::factory()->create());
 
-        $response = $this->getJson("/api/artists/{$artist->id}");
+        $response = $this->getJson(route('artist.show', $artist->id));
 
         $response->assertOk()
             ->assertJsonPath('data.id', $artist->id)
@@ -144,7 +144,7 @@ class ArtistControllerTest extends TestCase
 
         Sanctum::actingAs(User::factory()->create());
 
-        $response = $this->getJson("/api/artists/{$artist->id}");
+        $response = $this->getJson(route('artist.show', $artist->id));
 
         $response->assertStatus(404)
             ->assertJson([
@@ -159,7 +159,7 @@ class ArtistControllerTest extends TestCase
 
         Sanctum::actingAs(User::factory()->create());
 
-        $response = $this->getJson('/api/artists');
+        $response = $this->getJson(route('artist.index'));
 
         $response->assertOk()
             ->assertJsonCount(1, 'data')
@@ -180,7 +180,7 @@ class ArtistControllerTest extends TestCase
 
         Sanctum::actingAs(User::factory()->create());
 
-        $response = $this->getJson("/api/artists?styles[]={$blackwork->id}");
+        $response = $this->getJson(route('artist.index', ['styles' => [$blackwork->id]]));
 
         $response->assertOk()
             ->assertJsonCount(1, 'data')

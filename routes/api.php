@@ -8,26 +8,26 @@ use App\Http\Controllers\Api\ReviewController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('throttle:10,1')->group(function () {
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/register', [AuthController::class, 'register'])->name('auth.register');
+    Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
 });
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
 
-    Route::get('/artists', [ArtistController::class, 'index']);
-    Route::get('/artists/{id}', [ArtistController::class, 'show']);
-    Route::post('/artists', [ArtistController::class, 'store']);
-    Route::put('/artists/{id}', [ArtistController::class, 'update']);
+    Route::get('/artists', [ArtistController::class, 'index'])->name('artist.index');
+    Route::get('/artists/{id}', [ArtistController::class, 'show'])->name('artist.show');
+    Route::post('/artists', [ArtistController::class, 'store'])->name('artist.store');
+    Route::put('/artists/{id}', [ArtistController::class, 'update'])->name('artist.update');
 
-    Route::post('/artists/{id}/images', [ArtistImageController::class, 'store']);
-    Route::delete('/images/{id}', [ArtistImageController::class, 'destroy']);
-    Route::patch('/images/{id}/main', [ArtistImageController::class, 'setMain']);
+    Route::post('/artists/{id}/images', [ArtistImageController::class, 'store'])->name('artist.image.store');
+    Route::delete('/images/{id}', [ArtistImageController::class, 'destroy'])->name('artist.image.destroy');
+    Route::patch('/images/{id}/main', [ArtistImageController::class, 'setMain'])->name('artist.image.set-main');
 
-    Route::post('/reviews', [ReviewController::class, 'store']);
-    Route::get('/artists/{id}/reviews', [ReviewController::class, 'index']);
+    Route::post('/reviews', [ReviewController::class, 'store'])->name('review.store');
+    Route::get('/artists/{id}/reviews', [ReviewController::class, 'index'])->name('artist.review.index');
 
-    Route::post('/artists/{id}/favorite', [FavoriteController::class, 'toggle']);
-    Route::get('/favorites', [FavoriteController::class, 'index']);
+    Route::post('/artists/{id}/favorite', [FavoriteController::class, 'toggle'])->name('artist.favorite.toggle');
+    Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorite.index');
 
 });

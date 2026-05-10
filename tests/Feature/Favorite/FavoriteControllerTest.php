@@ -20,7 +20,7 @@ class FavoriteControllerTest extends TestCase
 
         Sanctum::actingAs($user);
 
-        $this->postJson("/api/artists/{$artist->id}/favorite")
+        $this->postJson(route('artist.favorite.toggle', $artist->id))
             ->assertStatus(200)
             ->assertJson(['message' => 'Added to favorites']);
 
@@ -30,7 +30,7 @@ class FavoriteControllerTest extends TestCase
         ]);
         $this->assertDatabaseCount('favorites', 1);
 
-        $this->postJson("/api/artists/{$artist->id}/favorite")
+        $this->postJson(route('artist.favorite.toggle', $artist->id))
             ->assertStatus(200)
             ->assertJson(['message' => 'Removed from favorites']);
 
@@ -51,7 +51,7 @@ class FavoriteControllerTest extends TestCase
 
         Sanctum::actingAs($user);
 
-        $response = $this->postJson("/api/artists/{$artist->id}/favorite");
+        $response = $this->postJson(route('artist.favorite.toggle', $artist->id));
 
         $response->assertStatus(400)
             ->assertJson(['message' => 'You cannot favorite yourself']);
@@ -72,7 +72,7 @@ class FavoriteControllerTest extends TestCase
 
         Sanctum::actingAs($user);
 
-        $response = $this->postJson("/api/artists/{$artist->id}/favorite");
+        $response = $this->postJson(route('artist.favorite.toggle', $artist->id));
 
         $response->assertStatus(404)
             ->assertJson(['message' => 'Resource not found']);

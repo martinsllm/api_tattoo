@@ -26,7 +26,7 @@ class ReviewControllerTest extends TestCase
             'comment' => 'Great artist!',
         ];
 
-        $response = $this->postJson('/api/reviews', $payload);
+        $response = $this->postJson(route('review.store'), $payload);
 
         $response->assertStatus(201)
             ->assertJsonStructure([
@@ -66,7 +66,7 @@ class ReviewControllerTest extends TestCase
             'comment' => 'Great artist!',
         ];
 
-        $response = $this->postJson('/api/reviews', $payload);
+        $response = $this->postJson(route('review.store'), $payload);
 
         $response->assertStatus(400)
             ->assertJson([
@@ -89,13 +89,13 @@ class ReviewControllerTest extends TestCase
 
         Sanctum::actingAs($user);
 
-        $this->postJson('/api/reviews', [
+        $this->postJson(route('review.store'), [
             'artist_profile_id' => $artist->id,
             'rating' => 5,
             'comment' => 'Great artist!',
         ])->assertStatus(201);
 
-        $response = $this->postJson('/api/reviews', [
+        $response = $this->postJson(route('review.store'), [
             'artist_profile_id' => $artist->id,
             'rating' => 5,
             'comment' => 'Great artist!',
@@ -123,7 +123,7 @@ class ReviewControllerTest extends TestCase
             'comment' => 'Great artist!',
         ];
 
-        $response = $this->postJson('/api/reviews', $payload);
+        $response = $this->postJson(route('review.store'), $payload);
 
         $response->assertStatus(404)
             ->assertJson([
