@@ -20,10 +20,10 @@ class ReviewResource extends JsonResource
             'comment' => $this->comment,
             'created_at' => $this->created_at,
 
-            'user' => [
+            'user' => $this->user ? [
                 'id' => $this->user->id,
                 'name' => $this->user->name,
-            ],
+            ] : null,
         ];
     }
 }
