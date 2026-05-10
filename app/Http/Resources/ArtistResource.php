@@ -20,7 +20,7 @@ class ArtistResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $isAuthenticated = $request->user() !== null;
+        $isAuthenticated = $request->user('sanctum') !== null;
 
         return [
             'id' => $this->id,

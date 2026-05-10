@@ -239,4 +239,22 @@ class ArtistControllerTest extends TestCase
             ->assertJsonPath('data.location.latitude', -23.5505)
             ->assertJsonPath('data.location.longitude', -46.6333);
     }
+
+    public function test_show_exposes_exact_coordinates_when_bearer_token_is_sent(): void
+    {
+        $artist = ArtistProfile::factory()->create([
+            'latitude' => -23.5505,
+            'longitude' => -46.6333,
+        ]);
+
+        $user = User::factory()->create();
+        $token = $user->createToken('api-token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', 'Bearer '.$token)
+            ->getJson(route('artist.show', $artist->id));
+
+        $response->assertOk()
+            ->assertJsonPath('data.location.latitude', -23.5505)
+            ->assertJsonPath('data.location.longitude', -46.6333);
+    }
 }
