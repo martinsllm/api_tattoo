@@ -5,11 +5,19 @@ namespace Tests\Feature\Auth;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class AuthControllerTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Role::findOrCreate('client');
+    }
 
     public function test_register_creates_user_and_returns_token(): void
     {
@@ -36,6 +44,21 @@ class AuthControllerTest extends TestCase
             'email' => 'lucas@example.com',
             'name' => 'Lucas Tattoo',
         ]);
+    }
+
+    public function test_register_assigns_client_role_to_new_user(): void
+    {
+        $response = $this->postJson(route('auth.register'), [
+            'name' => 'Lucas Tattoo',
+            'email' => 'lucas@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ]);
+
+        $response->assertOk();
+
+        $user = User::where('email', 'lucas@example.com')->firstOrFail();
+        $this->assertTrue($user->hasRole('client'));
     }
 
     public function test_register_fails_when_email_is_already_taken(): void

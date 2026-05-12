@@ -10,12 +10,18 @@ use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
 {
     public function register(StoreUserRequest $request)
     {
-        $user = User::create($request->validated());
+        $user = DB::transaction(function () use ($request) {
+            $user = User::create($request->validated());
+            $user->assignRole('client');
+
+            return $user;
+        });
 
         $token = $user->createToken('api-token')->plainTextToken;
 
