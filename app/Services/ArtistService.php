@@ -31,6 +31,8 @@ class ArtistService
                 $artist->tags()->sync($tags);
             }
 
+            $user->syncRoles(['artist']);
+
             return $artist;
         });
     }

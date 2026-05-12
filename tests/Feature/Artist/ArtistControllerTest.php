@@ -7,11 +7,20 @@ use App\Models\Style;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class ArtistControllerTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Role::findOrCreate('client');
+        Role::findOrCreate('artist');
+    }
 
     public function test_store_creates_artist_profile_for_authenticated_user(): void
     {
@@ -73,6 +82,28 @@ class ArtistControllerTest extends TestCase
             ]);
 
         $this->assertSame(1, ArtistProfile::where('user_id', $user->id)->count());
+    }
+
+    public function test_store_promotes_user_to_artist_role(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('client');
+
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson(route('artist.store'), [
+            'studio_name' => 'Tinta Preta Studio',
+            'city' => 'Curitiba',
+            'state' => 'PR',
+            'latitude' => -25.4284,
+            'longitude' => -49.2733,
+        ]);
+
+        $response->assertOk();
+
+        $user->refresh();
+        $this->assertTrue($user->hasRole('artist'));
+        $this->assertFalse($user->hasRole('client'));
     }
 
     public function test_update_allows_owner_to_change_their_profile(): void
