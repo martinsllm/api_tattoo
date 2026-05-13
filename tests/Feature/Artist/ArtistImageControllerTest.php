@@ -9,11 +9,19 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class ArtistImageControllerTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Role::findOrCreate('admin');
+    }
 
     public function test_store_creates_artist_images_for_authenticated_user(): void
     {
@@ -250,5 +258,55 @@ class ArtistImageControllerTest extends TestCase
 
         $this->assertDatabaseHas('artist_images', ['id' => $image->id]);
         Storage::disk('public')->assertExists($image->image_url);
+    }
+
+    public function test_destroy_allows_admin_to_delete_other_artist_image(): void
+    {
+        Storage::fake('public');
+
+        $owner = User::factory()->create();
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $artist = ArtistProfile::factory()->for($owner)->create();
+
+        $image = ArtistImage::factory()->for($artist, 'artist')->create();
+
+        Storage::disk('public')->put($image->image_url, 'fake-content');
+
+        Sanctum::actingAs($admin);
+
+        $response = $this->deleteJson(route('artist.image.destroy', $image->id));
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'Image deleted successfully');
+
+        $this->assertDatabaseMissing('artist_images', ['id' => $image->id]);
+        Storage::disk('public')->assertMissing($image->image_url);
+    }
+
+    public function test_set_main_forbids_admin_from_acting_on_other_artist_image(): void
+    {
+        Storage::fake('public');
+
+        $owner = User::factory()->create();
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $artist = ArtistProfile::factory()->for($owner)->create();
+
+        $image = ArtistImage::factory()->for($artist, 'artist')->create();
+
+        Sanctum::actingAs($admin);
+
+        $response = $this->patchJson(route('artist.image.set-main', $image->id));
+
+        $response->assertStatus(403)
+            ->assertJsonPath('message', 'Forbidden');
+
+        $this->assertDatabaseHas('artist_images', [
+            'id' => $image->id,
+            'is_main' => false,
+        ]);
     }
 }

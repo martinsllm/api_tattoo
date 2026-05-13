@@ -20,6 +20,7 @@ class ArtistControllerTest extends TestCase
 
         Role::findOrCreate('client');
         Role::findOrCreate('artist');
+        Role::findOrCreate('admin');
     }
 
     public function test_store_creates_artist_profile_for_authenticated_user(): void
@@ -147,6 +148,31 @@ class ArtistControllerTest extends TestCase
             ->assertJson([
                 'message' => 'Forbidden',
             ]);
+
+        $this->assertDatabaseHas('artist_profiles', [
+            'id' => $artist->id,
+            'studio_name' => 'Nome Antigo',
+        ]);
+    }
+
+    public function test_update_forbids_admin_from_changing_other_artist_profile(): void
+    {
+        $owner = User::factory()->create();
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $artist = ArtistProfile::factory()->for($owner)->create([
+            'studio_name' => 'Nome Antigo',
+        ]);
+
+        Sanctum::actingAs($admin);
+
+        $response = $this->putJson(route('artist.update', $artist->id), [
+            'studio_name' => 'Admin Tentando Editar',
+        ]);
+
+        $response->assertStatus(403)
+            ->assertJsonPath('message', 'Forbidden');
 
         $this->assertDatabaseHas('artist_profiles', [
             'id' => $artist->id,

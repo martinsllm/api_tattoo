@@ -14,6 +14,10 @@ class ArtistImagePolicy
 
     public function delete(User $user, ArtistImage $image): bool
     {
+        if ($user->hasRole('admin')) {
+            return true;
+        }
+
         return $user->id === $image->artist->user_id;
     }
 }
