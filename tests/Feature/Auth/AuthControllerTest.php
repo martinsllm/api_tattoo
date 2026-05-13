@@ -33,12 +33,13 @@ class AuthControllerTest extends TestCase
         $response->assertOk()
             ->assertJsonStructure([
                 'data' => [
-                    'user' => ['id', 'name', 'email', 'created_at'],
+                    'user' => ['id', 'name', 'email', 'created_at', 'roles'],
                     'token',
                 ],
                 'message',
             ])
-            ->assertJsonPath('data.user.email', 'lucas@example.com');
+            ->assertJsonPath('data.user.email', 'lucas@example.com')
+            ->assertJsonPath('data.user.roles', ['client']);
 
         $this->assertDatabaseHas('users', [
             'email' => 'lucas@example.com',
@@ -98,6 +99,7 @@ class AuthControllerTest extends TestCase
             'email' => 'lucas@example.com',
             'password' => 'password123',
         ]);
+        $user->assignRole('client');
 
         $response = $this->postJson(route('auth.login'), [
             'email' => $user->email,
@@ -107,12 +109,13 @@ class AuthControllerTest extends TestCase
         $response->assertOk()
             ->assertJsonStructure([
                 'data' => [
-                    'user' => ['id', 'name', 'email', 'created_at'],
+                    'user' => ['id', 'name', 'email', 'created_at', 'roles'],
                     'token',
                 ],
                 'message',
             ])
-            ->assertJsonPath('data.user.id', $user->id);
+            ->assertJsonPath('data.user.id', $user->id)
+            ->assertJsonPath('data.user.roles', ['client']);
     }
 
     public function test_login_fails_with_invalid_credentials(): void

@@ -4,11 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\LoginRequest;
+use App\Http\Requests\StoreUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -26,7 +25,7 @@ class AuthController extends Controller
         $token = $user->createToken('api-token')->plainTextToken;
 
         return ApiResponse::success([
-            'user' => new UserResource($user),
+            'user' => new UserResource($user->load('roles')),
             'token' => $token,
         ]);
     }
@@ -39,10 +38,11 @@ class AuthController extends Controller
             return ApiResponse::error('Invalid credentials', 401);
         }
 
-        $token = Auth::user()->createToken('api-token')->plainTextToken;
+        $user = Auth::user()->load('roles');
+        $token = $user->createToken('api-token')->plainTextToken;
 
         return ApiResponse::success([
-            'user' => new UserResource(Auth::user()),
+            'user' => new UserResource($user),
             'token' => $token,
         ]);
     }
