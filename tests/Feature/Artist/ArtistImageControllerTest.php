@@ -165,6 +165,26 @@ class ArtistImageControllerTest extends TestCase
         ]);
     }
 
+    public function test_set_main_requires_authentication(): void
+    {
+        $owner = User::factory()->create();
+        $artist = ArtistProfile::factory()->for($owner)->create();
+
+        $image = ArtistImage::factory()->for($artist, 'artist')->create();
+
+        $response = $this->patchJson(route('artist.image.set-main', $image->id));
+
+        $response->assertStatus(401)
+            ->assertJson([
+                'message' => 'Unauthenticated',
+            ]);
+
+        $this->assertDatabaseHas('artist_images', [
+            'id' => $image->id,
+            'is_main' => false,
+        ]);
+    }
+
     public function test_set_main_rejects_when_image_is_not_owned_by_the_artist(): void
     {
         Storage::fake('public');
@@ -209,6 +229,28 @@ class ArtistImageControllerTest extends TestCase
 
         $this->assertDatabaseMissing('artist_images', ['id' => $image->id]);
         Storage::disk('public')->assertMissing($image->image_url);
+    }
+
+    public function test_destroy_requires_authentication(): void
+    {
+        Storage::fake('public');
+
+        $owner = User::factory()->create();
+        $artist = ArtistProfile::factory()->for($owner)->create();
+
+        $image = ArtistImage::factory()->for($artist, 'artist')->create();
+
+        Storage::disk('public')->put($image->image_url, 'fake-content');
+
+        $response = $this->deleteJson(route('artist.image.destroy', $image->id));
+
+        $response->assertStatus(401)
+            ->assertJson([
+                'message' => 'Unauthenticated',
+            ]);
+
+        $this->assertDatabaseHas('artist_images', ['id' => $image->id]);
+        Storage::disk('public')->assertExists($image->image_url);
     }
 
     public function test_destroy_blocks_main_image_deletion(): void

@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ArtistResource;
 use App\Services\FavoriteService;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class FavoriteController extends Controller
 {
@@ -27,6 +28,10 @@ class FavoriteController extends Controller
 
     public function toggle($artistId)
     {
+        if (Auth::user()->hasRole('admin')) {
+            throw new AccessDeniedHttpException;
+        }
+
         $favorited = $this->favoriteService->toggle($artistId);
 
         $message = $favorited ? 'Added to favorites' : 'Removed from favorites';

@@ -115,6 +115,39 @@ class ArtistAdminControllerTest extends TestCase
         ]);
     }
 
+    public function test_activate_forbids_anonymous_user(): void
+    {
+        $artist = ArtistProfile::factory()->inactive()->create();
+
+        $response = $this->patchJson(route('admin.artist.activate', $artist->id));
+
+        $response->assertStatus(401)
+            ->assertJson(['message' => 'Unauthenticated']);
+
+        $this->assertDatabaseHas('artist_profiles', [
+            'id' => $artist->id,
+            'is_active' => false,
+        ]);
+    }
+
+    public function test_activate_forbids_authenticated_artist(): void
+    {
+        $artist = ArtistProfile::factory()->inactive()->create();
+        $artist->user->assignRole('artist');
+
+        Sanctum::actingAs($artist->user);
+
+        $response = $this->patchJson(route('admin.artist.activate', $artist->id));
+
+        $response->assertStatus(403)
+            ->assertJson(['message' => 'Forbidden']);
+
+        $this->assertDatabaseHas('artist_profiles', [
+            'id' => $artist->id,
+            'is_active' => false,
+        ]);
+    }
+
     public function test_activate_forbids_authenticated_client(): void
     {
         $client = User::factory()->create();

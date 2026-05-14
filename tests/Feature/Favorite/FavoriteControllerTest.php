@@ -6,11 +6,19 @@ use App\Models\ArtistProfile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class FavoriteControllerTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Role::findOrCreate('admin');
+    }
 
     public function test_toggle_adds_then_removes_artist_from_favorites(): void
     {
@@ -36,6 +44,43 @@ class FavoriteControllerTest extends TestCase
 
         $this->assertDatabaseMissing('favorites', [
             'user_id' => $user->id,
+            'artist_profile_id' => $artist->id,
+        ]);
+        $this->assertDatabaseCount('favorites', 0);
+    }
+
+    public function test_toggle_requires_authentication(): void
+    {
+        $artist = ArtistProfile::factory()->create();
+
+        $response = $this->postJson(route('artist.favorite.toggle', $artist->id));
+
+        $response->assertStatus(401)
+            ->assertJson([
+                'message' => 'Unauthenticated',
+            ]);
+
+        $this->assertDatabaseCount('favorites', 0);
+    }
+
+    public function test_toggle_forbids_admin_from_favoriting(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $artist = ArtistProfile::factory()->create();
+
+        Sanctum::actingAs($admin);
+
+        $response = $this->postJson(route('artist.favorite.toggle', $artist->id));
+
+        $response->assertStatus(403)
+            ->assertJson([
+                'message' => 'Forbidden',
+            ]);
+
+        $this->assertDatabaseMissing('favorites', [
+            'user_id' => $admin->id,
             'artist_profile_id' => $artist->id,
         ]);
         $this->assertDatabaseCount('favorites', 0);

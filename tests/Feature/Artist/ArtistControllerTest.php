@@ -129,6 +129,28 @@ class ArtistControllerTest extends TestCase
         ]);
     }
 
+    public function test_update_requires_authentication(): void
+    {
+        $owner = User::factory()->create();
+        $artist = ArtistProfile::factory()->for($owner)->create([
+            'studio_name' => 'Nome Antigo',
+        ]);
+
+        $response = $this->putJson(route('artist.update', $artist->id), [
+            'studio_name' => 'Tentativa Anonima',
+        ]);
+
+        $response->assertStatus(401)
+            ->assertJson([
+                'message' => 'Unauthenticated',
+            ]);
+
+        $this->assertDatabaseHas('artist_profiles', [
+            'id' => $artist->id,
+            'studio_name' => 'Nome Antigo',
+        ]);
+    }
+
     public function test_update_forbids_non_owner_from_changing_profile(): void
     {
         $owner = User::factory()->create();
