@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\ArtistAdminController;
+use App\Http\Controllers\Api\Admin\ReviewAdminController;
 use App\Http\Controllers\Api\ArtistController;
 use App\Http\Controllers\Api\ArtistImageController;
 use App\Http\Controllers\Api\AuthController;
@@ -33,4 +35,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/artists/{id}/favorite', [FavoriteController::class, 'toggle'])->name('artist.favorite.toggle');
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorite.index');
 
+});
+
+Route::middleware('auth:sanctum', 'role:admin')->prefix('admin')->name('admin.')->group(function () {
+    Route::patch('/artists/{id}/deactivate', [ArtistAdminController::class, 'deactivate'])->name('artist.deactivate');
+    Route::patch('/artists/{id}/activate', [ArtistAdminController::class, 'activate'])->name('artist.activate');
+    Route::delete('/reviews/{id}', [ReviewAdminController::class, 'destroy'])->name('review.destroy');
 });

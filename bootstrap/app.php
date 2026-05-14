@@ -6,6 +6,10 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Exceptions\UnauthorizedException;
+use Spatie\Permission\Middleware\PermissionMiddleware;
+use Spatie\Permission\Middleware\RoleMiddleware;
+use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
@@ -17,9 +21,6 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware): void {
-        //
-    })
     ->withExceptions(function (Exceptions $exceptions): void {
         // 401
         $exceptions->render(function (AuthenticationException $e, $request) {
@@ -28,6 +29,11 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // 403
         $exceptions->render(function (AccessDeniedHttpException $e, $request) {
+            return ApiResponse::error('Forbidden', 403);
+        });
+
+        // 403
+        $exceptions->render(function (UnauthorizedException $e, $request) {
             return ApiResponse::error('Forbidden', 403);
         });
 
@@ -50,4 +56,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (DomainException $e, $request) {
             return ApiResponse::error($e->getMessage(), 400);
         });
+    })
+    ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->alias([
+            'role' => RoleMiddleware::class,
+            'permission' => PermissionMiddleware::class,
+            'role_or_permission' => RoleOrPermissionMiddleware::class,
+        ]);
     })->create();
