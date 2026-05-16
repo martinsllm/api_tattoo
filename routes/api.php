@@ -21,6 +21,8 @@ Route::middleware('throttle:60,1')->group(function () {
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
+    Route::get('/me', [AuthController::class, 'me'])->name('auth.me');
+    Route::patch('/me', [AuthController::class, 'updateProfile'])->name('auth.update-profile');
 
     Route::post('/artists', [ArtistController::class, 'store'])->name('artist.store');
     Route::put('/artists/{id}', [ArtistController::class, 'update'])->name('artist.update');

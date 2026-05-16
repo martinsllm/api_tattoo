@@ -152,4 +152,103 @@ class AuthControllerTest extends TestCase
 
         $this->assertSame(0, $user->tokens()->count());
     }
+
+    public function test_me_returns_authenticated_user_profile(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('client');
+
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson(route('auth.me'));
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => ['id', 'name', 'email', 'created_at', 'roles'],
+            ])
+            ->assertJsonPath('data.id', $user->id)
+            ->assertJsonPath('data.email', $user->email)
+            ->assertJsonPath('data.roles', ['client']);
+    }
+
+    public function test_me_requires_authentication(): void
+    {
+        $response = $this->getJson(route('auth.me'));
+
+        $response->assertStatus(401);
+    }
+
+    public function test_update_profile_updates_name_and_email_successfully(): void
+    {
+        $user = User::factory()->create([
+            'name' => 'Old Name',
+            'email' => 'old@example.com',
+        ]);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->patchJson(route('auth.update-profile'), [
+            'name' => 'New Name',
+            'email' => 'new@example.com',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('data.name', 'New Name')
+            ->assertJsonPath('data.email', 'new@example.com');
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'name' => 'New Name',
+            'email' => 'new@example.com',
+        ]);
+    }
+
+    public function test_update_profile_fails_when_email_is_already_taken(): void
+    {
+        User::factory()->create(['email' => 'taken@example.com']);
+
+        $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
+
+        $response = $this->patchJson(route('auth.update-profile'), [
+            'email' => 'taken@example.com',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors('email');
+    }
+
+    public function test_update_profile_fails_when_password_is_too_short(): void
+    {
+        $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
+
+        $response = $this->patchJson(route('auth.update-profile'), [
+            'password' => '123',
+            'password_confirmation' => '123',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors('password');
+    }
+
+    public function test_update_profile_updates_password_successfully(): void
+    {
+        $user = User::factory()->create(['password' => 'old-password123']);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->patchJson(route('auth.update-profile'), [
+            'password' => 'new-password123',
+            'password_confirmation' => 'new-password123',
+        ]);
+
+        $response->assertOk();
+
+        $this->assertTrue(
+            \Illuminate\Support\Facades\Hash::check('new-password123', $user->fresh()->password)
+        );
+    }
 }

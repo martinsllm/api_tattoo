@@ -6,6 +6,7 @@ use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -53,4 +54,22 @@ class AuthController extends Controller
 
         return ApiResponse::success(null, 'Logged out successfully');
     }
+
+    public function me()
+    {
+        $user = Auth::user()->load('roles');
+
+        return ApiResponse::success(new UserResource($user));
+    }
+
+    public function updateProfile(UpdateProfileRequest $request)
+    {
+        $user = Auth::user();
+
+        $user->update($request->validated());
+
+        return ApiResponse::success(new UserResource($user));
+    }
+
+    
 }
