@@ -21,8 +21,11 @@ class ArtistController extends Controller
         $lng = $request->input('lng');
         $radius = $request->input('radius', 10);
 
-        $styles = $request->input('styles'); // array
-        $tags = $request->input('tags');     // array
+        $styles = $request->input('styles');
+        $tags = $request->input('tags');
+        $city = $request->input('city');
+        $state = $request->input('state');
+        $studioName = $request->input('q');
 
         $query = ArtistProfile::with([
             'user',
@@ -55,6 +58,21 @@ class ArtistController extends Controller
         // Filtro por tags
         if ($request->filled('tags')) {
             $query->filterTags($tags);
+        }
+
+        // Filtro por cidade
+        if ($request->filled('city')) {
+            $query->filterCity($city);
+        }
+
+        // Filtro por estado
+        if ($request->filled('state')) {
+            $query->filterState($state);
+        }
+
+        // Filtro por nome do estúdio
+        if ($request->filled('q')) {
+            $query->filterStudioName($studioName);
         }
 
         return ApiResponse::success(ArtistResource::collection($query->paginate(10)), 'Artists retrieved successfully');

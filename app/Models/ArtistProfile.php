@@ -99,4 +99,19 @@ class ArtistProfile extends Model
             $q->whereIn('tags.id', $tags);
         });
     }
+
+    public function scopeFilterCity($query, string $city)
+    {
+        return $query->where('city', 'like', '%'.$city.'%');
+    }
+
+    public function scopeFilterState($query, string $state)
+    {
+        return $query->where('state', 'like', '%'.$state.'%');
+    }
+
+    public function scopeFilterStudioName($query, string $studioName)
+    {
+        return $query->where('studio_name', 'like', '%'.$studioName.'%');
+    }
 }

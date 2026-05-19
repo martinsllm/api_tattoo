@@ -26,6 +26,9 @@ class FilterArtistsRequest extends FormRequest
             'styles.*' => ['integer', 'exists:styles,id'],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['integer', 'exists:tags,id'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'state' => ['nullable', 'string', 'max:2'],
+            'q' => ['nullable', 'string', 'max:255'],
         ];
     }
 

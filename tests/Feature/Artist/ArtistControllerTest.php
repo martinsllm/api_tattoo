@@ -267,6 +267,58 @@ class ArtistControllerTest extends TestCase
             ->assertJsonMissing(['studio_name' => 'Cores Vivas']);
     }
 
+    public function test_index_filters_by_city(): void
+    {
+        $spArtist = ArtistProfile::factory()->create(['studio_name' => 'SP Studio', 'city' => 'São Paulo']);
+        ArtistProfile::factory()->create(['studio_name' => 'RJ Studio', 'city' => 'Rio de Janeiro']);
+
+        $response = $this->getJson(route('artist.index', ['city' => 'São Paulo']));
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $spArtist->id)
+            ->assertJsonMissing(['studio_name' => 'RJ Studio']);
+    }
+
+    public function test_index_filters_by_state(): void
+    {
+        $prArtist = ArtistProfile::factory()->create(['studio_name' => 'PR Studio', 'state' => 'PR']);
+        ArtistProfile::factory()->create(['studio_name' => 'SP Studio', 'state' => 'SP']);
+
+        $response = $this->getJson(route('artist.index', ['state' => 'PR']));
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $prArtist->id)
+            ->assertJsonMissing(['studio_name' => 'SP Studio']);
+    }
+
+    public function test_index_filters_by_studio_name(): void
+    {
+        $blackwork = ArtistProfile::factory()->create(['studio_name' => 'Blackwork SP']);
+        ArtistProfile::factory()->create(['studio_name' => 'Aquarela Studio']);
+
+        $response = $this->getJson(route('artist.index', ['q' => 'Blackwork']));
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $blackwork->id)
+            ->assertJsonMissing(['studio_name' => 'Aquarela Studio']);
+    }
+
+    public function test_index_filters_combined_city_and_studio_name(): void
+    {
+        $target = ArtistProfile::factory()->create(['studio_name' => 'Old School SP', 'city' => 'São Paulo']);
+        ArtistProfile::factory()->create(['studio_name' => 'Old School RJ', 'city' => 'Rio de Janeiro']);
+        ArtistProfile::factory()->create(['studio_name' => 'Outro Studio', 'city' => 'São Paulo']);
+
+        $response = $this->getJson(route('artist.index', ['city' => 'São Paulo', 'q' => 'Old School']));
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $target->id);
+    }
+
     public function test_index_is_accessible_without_authentication(): void
     {
         ArtistProfile::factory()->create(['studio_name' => 'Estúdio Público']);
