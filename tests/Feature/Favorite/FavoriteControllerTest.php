@@ -20,6 +20,25 @@ class FavoriteControllerTest extends TestCase
         Role::findOrCreate('admin');
     }
 
+    public function test_index_returns_pagination_metadata_at_root_level(): void
+    {
+        $user = User::factory()->create();
+        $artist = ArtistProfile::factory()->create();
+        $user->favorites()->attach($artist->id);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson(route('favorite.index'));
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data',
+                'links' => ['first', 'last', 'prev', 'next'],
+                'meta' => ['current_page', 'total', 'per_page', 'last_page'],
+                'message',
+            ]);
+    }
+
     public function test_toggle_adds_then_removes_artist_from_favorites(): void
     {
         $user = User::factory()->create();

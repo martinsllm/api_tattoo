@@ -27,7 +27,7 @@ class ReviewController extends Controller
             ->latest()
             ->paginate(10);
 
-        return ApiResponse::success(ReviewResource::collection($reviews), 'Reviews retrieved successfully');
+        return ApiResponse::paginate(ReviewResource::collection($reviews), 'Reviews retrieved successfully');
     }
 
     public function store(StoreReviewRequest $request)

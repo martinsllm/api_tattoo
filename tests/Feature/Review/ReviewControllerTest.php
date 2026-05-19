@@ -20,6 +20,23 @@ class ReviewControllerTest extends TestCase
         Role::findOrCreate('admin');
     }
 
+    public function test_index_returns_pagination_metadata_at_root_level(): void
+    {
+        $artist = ArtistProfile::factory()->create();
+
+        Sanctum::actingAs(User::factory()->create());
+
+        $response = $this->getJson(route('artist.review.index', $artist->id));
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data',
+                'links' => ['first', 'last', 'prev', 'next'],
+                'meta' => ['current_page', 'total', 'per_page', 'last_page'],
+                'message',
+            ]);
+    }
+
     public function test_store_creates_review_for_authenticated_user(): void
     {
         $user = User::factory()->create();

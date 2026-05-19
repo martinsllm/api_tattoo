@@ -267,6 +267,21 @@ class ArtistControllerTest extends TestCase
             ->assertJsonMissing(['studio_name' => 'Cores Vivas']);
     }
 
+    public function test_index_returns_pagination_metadata_at_root_level(): void
+    {
+        ArtistProfile::factory()->count(3)->create();
+
+        $response = $this->getJson(route('artist.index'));
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data',
+                'links' => ['first', 'last', 'prev', 'next'],
+                'meta' => ['current_page', 'total', 'per_page', 'last_page'],
+                'message',
+            ]);
+    }
+
     public function test_index_filters_by_city(): void
     {
         $spArtist = ArtistProfile::factory()->create(['studio_name' => 'SP Studio', 'city' => 'São Paulo']);
