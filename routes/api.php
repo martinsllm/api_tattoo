@@ -7,6 +7,8 @@ use App\Http\Controllers\Api\ArtistImageController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\StyleController;
+use App\Http\Controllers\Api\TagController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('throttle:10,1')->group(function () {
@@ -17,6 +19,8 @@ Route::middleware('throttle:10,1')->group(function () {
 Route::middleware('throttle:60,1')->group(function () {
     Route::get('/artists', [ArtistController::class, 'index'])->name('artist.index');
     Route::get('/artists/{id}', [ArtistController::class, 'show'])->name('artist.show');
+    Route::get('/styles', [StyleController::class, 'index'])->name('style.index');
+    Route::get('/tags', [TagController::class, 'index'])->name('tag.index');
 });
 
 Route::middleware('auth:sanctum')->group(function () {
