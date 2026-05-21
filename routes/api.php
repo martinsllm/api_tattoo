@@ -30,6 +30,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/artists', [ArtistController::class, 'store'])->name('artist.store');
     Route::patch('/artists/{id}', [ArtistController::class, 'update'])->name('artist.update');
+    Route::patch('/artists/{id}/deactivate', [ArtistController::class, 'deactivate'])->name('artist.deactivate');
+    Route::patch('/artists/{id}/activate', [ArtistController::class, 'activate'])->name('artist.activate');
 
     Route::post('/artists/{id}/images', [ArtistImageController::class, 'store'])->name('artist.image.store');
     Route::delete('/images/{id}', [ArtistImageController::class, 'destroy'])->name('artist.image.destroy');

@@ -5,14 +5,17 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Models\ArtistProfile;
+use App\Services\ArtistService;
 
 class ArtistAdminController extends Controller
 {
+    public function __construct(private ArtistService $artistService) {}
+
     public function deactivate($id)
     {
         $artist = ArtistProfile::findOrFail($id);
 
-        $artist->update(['is_active' => false]);
+        $this->artistService->deactivate($artist);
 
         return ApiResponse::success(null, 'Artist deactivated successfully');
     }
@@ -21,7 +24,7 @@ class ArtistAdminController extends Controller
     {
         $artist = ArtistProfile::findOrFail($id);
 
-        $artist->update(['is_active' => true]);
+        $this->artistService->activate($artist);
 
         return ApiResponse::success(null, 'Artist activated successfully');
     }

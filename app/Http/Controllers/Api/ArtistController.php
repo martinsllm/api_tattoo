@@ -110,4 +110,26 @@ class ArtistController extends Controller
 
         return ApiResponse::success(new ArtistResource($artist), 'Artist updated successfully');
     }
+
+    public function deactivate($id)
+    {
+        $artist = ArtistProfile::findOrFail($id);
+
+        $this->authorize('update', $artist);
+
+        $this->artistService->deactivate($artist);
+
+        return ApiResponse::success(null, 'Artist deactivated successfully');
+    }
+
+    public function activate($id)
+    {
+        $artist = ArtistProfile::findOrFail($id);
+
+        $this->authorize('update', $artist);
+
+        $this->artistService->activate($artist);
+
+        return ApiResponse::success(null, 'Artist activated successfully');
+    }
 }

@@ -57,4 +57,14 @@ class ArtistService
             return $artist;
         });
     }
+
+    public function deactivate(ArtistProfile $artist)
+    {
+        $artist->update(['is_active' => false]);
+    }
+
+    public function activate(ArtistProfile $artist)
+    {
+        $artist->update(['is_active' => true]);
+    }
 }

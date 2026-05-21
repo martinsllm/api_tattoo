@@ -334,6 +334,110 @@ class ArtistControllerTest extends TestCase
             ->assertJsonPath('data.0.id', $target->id);
     }
 
+    public function test_deactivate_allows_owner_to_deactivate_their_profile(): void
+    {
+        $owner = User::factory()->create();
+        $artist = ArtistProfile::factory()->for($owner)->create(['is_active' => true]);
+
+        Sanctum::actingAs($owner);
+
+        $response = $this->patchJson(route('artist.deactivate', $artist->id));
+
+        $response->assertOk()
+            ->assertJson(['message' => 'Artist deactivated successfully']);
+
+        $this->assertDatabaseHas('artist_profiles', [
+            'id' => $artist->id,
+            'is_active' => false,
+        ]);
+    }
+
+    public function test_deactivate_forbids_non_owner(): void
+    {
+        $owner = User::factory()->create();
+        $intruder = User::factory()->create();
+        $artist = ArtistProfile::factory()->for($owner)->create(['is_active' => true]);
+
+        Sanctum::actingAs($intruder);
+
+        $response = $this->patchJson(route('artist.deactivate', $artist->id));
+
+        $response->assertStatus(403)
+            ->assertJson(['message' => 'Forbidden']);
+
+        $this->assertDatabaseHas('artist_profiles', [
+            'id' => $artist->id,
+            'is_active' => true,
+        ]);
+    }
+
+    public function test_deactivate_requires_authentication(): void
+    {
+        $artist = ArtistProfile::factory()->create(['is_active' => true]);
+
+        $response = $this->patchJson(route('artist.deactivate', $artist->id));
+
+        $response->assertStatus(401)
+            ->assertJson(['message' => 'Unauthenticated']);
+
+        $this->assertDatabaseHas('artist_profiles', [
+            'id' => $artist->id,
+            'is_active' => true,
+        ]);
+    }
+
+    public function test_activate_allows_owner_to_reactivate_their_profile(): void
+    {
+        $owner = User::factory()->create();
+        $artist = ArtistProfile::factory()->for($owner)->inactive()->create();
+
+        Sanctum::actingAs($owner);
+
+        $response = $this->patchJson(route('artist.activate', $artist->id));
+
+        $response->assertOk()
+            ->assertJson(['message' => 'Artist activated successfully']);
+
+        $this->assertDatabaseHas('artist_profiles', [
+            'id' => $artist->id,
+            'is_active' => true,
+        ]);
+    }
+
+    public function test_activate_forbids_non_owner(): void
+    {
+        $owner = User::factory()->create();
+        $intruder = User::factory()->create();
+        $artist = ArtistProfile::factory()->for($owner)->inactive()->create();
+
+        Sanctum::actingAs($intruder);
+
+        $response = $this->patchJson(route('artist.activate', $artist->id));
+
+        $response->assertStatus(403)
+            ->assertJson(['message' => 'Forbidden']);
+
+        $this->assertDatabaseHas('artist_profiles', [
+            'id' => $artist->id,
+            'is_active' => false,
+        ]);
+    }
+
+    public function test_activate_requires_authentication(): void
+    {
+        $artist = ArtistProfile::factory()->inactive()->create();
+
+        $response = $this->patchJson(route('artist.activate', $artist->id));
+
+        $response->assertStatus(401)
+            ->assertJson(['message' => 'Unauthenticated']);
+
+        $this->assertDatabaseHas('artist_profiles', [
+            'id' => $artist->id,
+            'is_active' => false,
+        ]);
+    }
+
     public function test_index_respects_per_page_parameter(): void
     {
         ArtistProfile::factory()->count(5)->create();
