@@ -75,7 +75,7 @@ class ArtistController extends Controller
             $query->filterStudioName($studioName);
         }
 
-        return ApiResponse::paginate(ArtistResource::collection($query->paginate(10)), 'Artists retrieved successfully');
+        return ApiResponse::paginate(ArtistResource::collection($query->paginate($request->integer('per_page', 10))), 'Artists retrieved successfully');
     }
 
     public function show($id)

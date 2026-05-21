@@ -3,6 +3,7 @@
 namespace Tests\Feature\Review;
 
 use App\Models\ArtistProfile;
+use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -197,5 +198,41 @@ class ReviewControllerTest extends TestCase
             ]);
 
         $this->assertDatabaseCount('reviews', 0);
+    }
+
+    public function test_index_respects_per_page_parameter(): void
+    {
+        $artist = ArtistProfile::factory()->create();
+        Review::factory()->count(5)->create(['artist_profile_id' => $artist->id]);
+
+        Sanctum::actingAs(User::factory()->create());
+
+        $response = $this->getJson(route('artist.review.index', ['id' => $artist->id, 'per_page' => 3]));
+
+        $response->assertOk()
+            ->assertJsonCount(3, 'data')
+            ->assertJsonPath('meta.per_page', 3);
+    }
+
+    public function test_index_rejects_per_page_above_maximum(): void
+    {
+        $artist = ArtistProfile::factory()->create();
+
+        Sanctum::actingAs(User::factory()->create());
+
+        $response = $this->getJson(route('artist.review.index', ['id' => $artist->id, 'per_page' => 51]));
+
+        $response->assertStatus(422);
+    }
+
+    public function test_index_rejects_invalid_per_page(): void
+    {
+        $artist = ArtistProfile::factory()->create();
+
+        Sanctum::actingAs(User::factory()->create());
+
+        $response = $this->getJson(route('artist.review.index', ['id' => $artist->id, 'per_page' => 'abc']));
+
+        $response->assertStatus(422);
     }
 }

@@ -9,6 +9,7 @@ use App\Http\Resources\ReviewResource;
 use App\Models\ArtistProfile;
 use App\Models\Review;
 use App\Services\ReviewService;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class ReviewController extends Controller
@@ -18,14 +19,16 @@ class ReviewController extends Controller
         $this->reviewService = $reviewService;
     }
 
-    public function index($artistId)
+    public function index(Request $request, $artistId)
     {
         ArtistProfile::active()->findOrFail($artistId);
+
+        $request->validate(['per_page' => ['nullable', 'integer', 'min:1', 'max:50']]);
 
         $reviews = Review::where('artist_profile_id', $artistId)
             ->with('user')
             ->latest()
-            ->paginate(10);
+            ->paginate($request->integer('per_page', 10));
 
         return ApiResponse::paginate(ReviewResource::collection($reviews), 'Reviews retrieved successfully');
     }

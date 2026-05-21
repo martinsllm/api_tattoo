@@ -334,6 +334,31 @@ class ArtistControllerTest extends TestCase
             ->assertJsonPath('data.0.id', $target->id);
     }
 
+    public function test_index_respects_per_page_parameter(): void
+    {
+        ArtistProfile::factory()->count(5)->create();
+
+        $response = $this->getJson(route('artist.index', ['per_page' => 3]));
+
+        $response->assertOk()
+            ->assertJsonCount(3, 'data')
+            ->assertJsonPath('meta.per_page', 3);
+    }
+
+    public function test_index_rejects_per_page_above_maximum(): void
+    {
+        $response = $this->getJson(route('artist.index', ['per_page' => 51]));
+
+        $response->assertStatus(422);
+    }
+
+    public function test_index_rejects_invalid_per_page(): void
+    {
+        $response = $this->getJson(route('artist.index', ['per_page' => 'abc']));
+
+        $response->assertStatus(422);
+    }
+
     public function test_index_is_accessible_without_authentication(): void
     {
         ArtistProfile::factory()->create(['studio_name' => 'Estúdio Público']);

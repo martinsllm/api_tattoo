@@ -148,4 +148,41 @@ class FavoriteControllerTest extends TestCase
 
         $this->assertDatabaseCount('favorites', 0);
     }
+
+    public function test_index_respects_per_page_parameter(): void
+    {
+        $user = User::factory()->create();
+        $artists = ArtistProfile::factory()->count(5)->create();
+        $user->favorites()->attach($artists->pluck('id'));
+
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson(route('favorite.index', ['per_page' => 3]));
+
+        $response->assertOk()
+            ->assertJsonCount(3, 'data')
+            ->assertJsonPath('meta.per_page', 3);
+    }
+
+    public function test_index_rejects_per_page_above_maximum(): void
+    {
+        $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson(route('favorite.index', ['per_page' => 51]));
+
+        $response->assertStatus(422);
+    }
+
+    public function test_index_rejects_invalid_per_page(): void
+    {
+        $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson(route('favorite.index', ['per_page' => 'abc']));
+
+        $response->assertStatus(422);
+    }
 }
