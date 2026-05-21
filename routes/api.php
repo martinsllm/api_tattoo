@@ -29,7 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/me', [AuthController::class, 'updateProfile'])->name('auth.update-profile');
 
     Route::post('/artists', [ArtistController::class, 'store'])->name('artist.store');
-    Route::put('/artists/{id}', [ArtistController::class, 'update'])->name('artist.update');
+    Route::patch('/artists/{id}', [ArtistController::class, 'update'])->name('artist.update');
 
     Route::post('/artists/{id}/images', [ArtistImageController::class, 'store'])->name('artist.image.store');
     Route::delete('/images/{id}', [ArtistImageController::class, 'destroy'])->name('artist.image.destroy');

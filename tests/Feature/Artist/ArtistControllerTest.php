@@ -116,7 +116,7 @@ class ArtistControllerTest extends TestCase
 
         Sanctum::actingAs($owner);
 
-        $response = $this->putJson(route('artist.update', $artist->id), [
+        $response = $this->patchJson(route('artist.update', $artist->id), [
             'studio_name' => 'Nome Novo',
         ]);
 
@@ -136,7 +136,7 @@ class ArtistControllerTest extends TestCase
             'studio_name' => 'Nome Antigo',
         ]);
 
-        $response = $this->putJson(route('artist.update', $artist->id), [
+        $response = $this->patchJson(route('artist.update', $artist->id), [
             'studio_name' => 'Tentativa Anonima',
         ]);
 
@@ -162,7 +162,7 @@ class ArtistControllerTest extends TestCase
 
         Sanctum::actingAs($intruder);
 
-        $response = $this->putJson(route('artist.update', $artist->id), [
+        $response = $this->patchJson(route('artist.update', $artist->id), [
             'studio_name' => 'Tentativa Invasor',
         ]);
 
@@ -189,7 +189,7 @@ class ArtistControllerTest extends TestCase
 
         Sanctum::actingAs($admin);
 
-        $response = $this->putJson(route('artist.update', $artist->id), [
+        $response = $this->patchJson(route('artist.update', $artist->id), [
             'studio_name' => 'Admin Tentando Editar',
         ]);
 
