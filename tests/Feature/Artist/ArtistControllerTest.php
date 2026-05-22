@@ -532,4 +532,46 @@ class ArtistControllerTest extends TestCase
             ->assertJsonPath('data.location.latitude', -23.5505)
             ->assertJsonPath('data.location.longitude', -46.6333);
     }
+
+    public function test_index_includes_favorites_count(): void
+    {
+        $artist = ArtistProfile::factory()->create();
+        $artist->favoritedBy()->attach(User::factory()->count(2)->create()->pluck('id'));
+
+        $response = $this->getJson(route('artist.index'));
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.favorites_count', 2);
+    }
+
+    public function test_index_hides_favorites_count_when_zero(): void
+    {
+        ArtistProfile::factory()->create();
+
+        $response = $this->getJson(route('artist.index'));
+
+        $response->assertOk()
+            ->assertJsonMissingPath('data.0.favorites_count');
+    }
+
+    public function test_show_includes_favorites_count(): void
+    {
+        $artist = ArtistProfile::factory()->create();
+        $artist->favoritedBy()->attach(User::factory()->create()->id);
+
+        $response = $this->getJson(route('artist.show', $artist->id));
+
+        $response->assertOk()
+            ->assertJsonPath('data.favorites_count', 1);
+    }
+
+    public function test_show_hides_favorites_count_when_zero(): void
+    {
+        $artist = ArtistProfile::factory()->create();
+
+        $response = $this->getJson(route('artist.show', $artist->id));
+
+        $response->assertOk()
+            ->assertJsonMissingPath('data.favorites_count');
+    }
 }

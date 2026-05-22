@@ -38,6 +38,7 @@ class ArtistController extends Controller
         // média de avaliação
         $query->withAvg('reviews', 'rating');
         $query->withCount('reviews');
+        $query->withCount(['favoritedBy as favorites_count']);
 
         $hasGeo = ! is_null($lat) && ! is_null($lng);
 
@@ -88,6 +89,7 @@ class ArtistController extends Controller
             'reviews.user',
         ])
             ->where('is_active', true)
+            ->withCount(['favoritedBy as favorites_count'])
             ->findOrFail($id);
 
         return ApiResponse::success(new ArtistResource($artist), 'Artist retrieved successfully');

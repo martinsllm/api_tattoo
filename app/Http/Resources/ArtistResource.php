@@ -37,6 +37,8 @@ class ArtistResource extends JsonResource
 
             'rating' => $this->when(isset($this->reviews_avg_rating), fn () => round($this->reviews_avg_rating, 1)),
 
+            'favorites_count' => $this->when(isset($this->favorites_count) && $this->favorites_count > 0, fn () => $this->favorites_count),
+
             'user' => $this->whenLoaded('user', fn () => [
                 'id' => $this->user?->id,
                 'name' => $this->user?->name,
