@@ -176,6 +176,44 @@ class ReviewControllerTest extends TestCase
         $this->assertDatabaseCount('reviews', 1);
     }
 
+    public function test_store_restores_soft_deleted_review_when_user_reviews_same_artist_again(): void
+    {
+        $user = User::factory()->create();
+        $artist = ArtistProfile::factory()->create();
+
+        $review = Review::factory()->create([
+            'user_id' => $user->id,
+            'artist_profile_id' => $artist->id,
+            'rating' => 3,
+            'comment' => 'Old comment',
+        ]);
+
+        $review->delete();
+
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson(route('review.store'), [
+            'artist_profile_id' => $artist->id,
+            'rating' => 5,
+            'comment' => 'New comment',
+        ]);
+
+        $response->assertStatus(201)
+            ->assertJsonPath('data.id', $review->id)
+            ->assertJsonPath('data.rating', 5)
+            ->assertJsonPath('data.comment', 'New comment');
+
+        $this->assertDatabaseCount('reviews', 1);
+        $this->assertDatabaseHas('reviews', [
+            'id' => $review->id,
+            'user_id' => $user->id,
+            'artist_profile_id' => $artist->id,
+            'rating' => 5,
+            'comment' => 'New comment',
+            'deleted_at' => null,
+        ]);
+    }
+
     public function test_rejects_authenticated_user_from_reviewing_an_inactive_artist(): void
     {
         $user = User::factory()->create();
@@ -248,8 +286,8 @@ class ReviewControllerTest extends TestCase
         $response->assertOk()
             ->assertJson(['message' => 'Review deleted successfully']);
 
-        $this->assertDatabaseMissing('reviews', ['id' => $review->id]);
-        $this->assertDatabaseCount('reviews', 0);
+        $this->assertSoftDeleted('reviews', ['id' => $review->id]);
+        $this->assertDatabaseCount('reviews', 1);
     }
 
     public function test_destroy_forbids_non_author(): void

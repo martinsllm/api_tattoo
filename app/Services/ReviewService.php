@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 class ReviewService
 {
-    public function create(array $data)
+    public function create(array $data): Review
     {
         $user = Auth::user();
 
@@ -20,10 +20,19 @@ class ReviewService
             throw new \DomainException('You cannot review yourself.');
         }
 
-        // impedir avaliações duplicadas
-        $existingReview = $artist->reviews()->where('user_id', $user->id)->first();
+        $existingReview = $artist->reviews()->withTrashed()->where('user_id', $user->id)->first();
 
         if ($existingReview) {
+            if ($existingReview->trashed()) {
+                $existingReview->restore();
+                $existingReview->update([
+                    'rating' => $data['rating'],
+                    'comment' => $data['comment'] ?? null,
+                ]);
+
+                return $existingReview->fresh();
+            }
+
             throw new \DomainException('You have already reviewed this artist.');
         }
 

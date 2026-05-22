@@ -36,8 +36,8 @@ class ReviewAdminControllerTest extends TestCase
         $response->assertOk()
             ->assertJson(['message' => 'Review deleted successfully']);
 
-        $this->assertDatabaseMissing('reviews', ['id' => $review->id]);
-        $this->assertDatabaseCount('reviews', 0);
+        $this->assertSoftDeleted('reviews', ['id' => $review->id]);
+        $this->assertDatabaseCount('reviews', 1);
     }
 
     public function test_destroy_forbids_anonymous_user(): void
