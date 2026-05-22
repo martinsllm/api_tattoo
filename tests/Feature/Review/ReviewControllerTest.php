@@ -235,4 +235,58 @@ class ReviewControllerTest extends TestCase
 
         $response->assertStatus(422);
     }
+
+    public function test_destroy_removes_review_when_called_by_author(): void
+    {
+        $author = User::factory()->create();
+        $review = Review::factory()->create(['user_id' => $author->id]);
+
+        Sanctum::actingAs($author);
+
+        $response = $this->deleteJson(route('review.destroy', $review->id));
+
+        $response->assertOk()
+            ->assertJson(['message' => 'Review deleted successfully']);
+
+        $this->assertDatabaseMissing('reviews', ['id' => $review->id]);
+        $this->assertDatabaseCount('reviews', 0);
+    }
+
+    public function test_destroy_forbids_non_author(): void
+    {
+        $author = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $review = Review::factory()->create(['user_id' => $author->id]);
+
+        Sanctum::actingAs($otherUser);
+
+        $response = $this->deleteJson(route('review.destroy', $review->id));
+
+        $response->assertStatus(403)
+            ->assertJson(['message' => 'Forbidden']);
+
+        $this->assertDatabaseHas('reviews', ['id' => $review->id]);
+    }
+
+    public function test_destroy_forbids_anonymous_user(): void
+    {
+        $review = Review::factory()->create();
+
+        $response = $this->deleteJson(route('review.destroy', $review->id));
+
+        $response->assertStatus(401)
+            ->assertJson(['message' => 'Unauthenticated']);
+
+        $this->assertDatabaseHas('reviews', ['id' => $review->id]);
+    }
+
+    public function test_destroy_returns_404_when_review_does_not_exist(): void
+    {
+        Sanctum::actingAs(User::factory()->create());
+
+        $response = $this->deleteJson(route('review.destroy', 9999));
+
+        $response->assertStatus(404)
+            ->assertJson(['message' => 'Resource not found']);
+    }
 }

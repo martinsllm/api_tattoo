@@ -39,6 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/reviews', [ReviewController::class, 'store'])->name('review.store');
     Route::get('/artists/{id}/reviews', [ReviewController::class, 'index'])->name('artist.review.index');
+    Route::delete('/reviews/{id}', [ReviewController::class, 'destroy'])->name('review.destroy');
 
     Route::post('/artists/{id}/favorite', [FavoriteController::class, 'toggle'])->name('artist.favorite.toggle');
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorite.index');

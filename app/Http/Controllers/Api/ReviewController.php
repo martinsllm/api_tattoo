@@ -40,4 +40,15 @@ class ReviewController extends Controller
 
         return ApiResponse::success(new ReviewResource($review), 'Review created successfully', 201);
     }
+
+    public function destroy($id)
+    {
+        $review = Review::findOrFail($id);
+
+        $this->authorize('delete', $review);
+
+        $review->deleteOrFail();
+
+        return ApiResponse::success(null, 'Review deleted successfully');
+    }
 }
