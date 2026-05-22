@@ -14,10 +14,7 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class ReviewController extends Controller
 {
-    public function __construct(private ReviewService $reviewService)
-    {
-        $this->reviewService = $reviewService;
-    }
+    public function __construct(private ReviewService $reviewService) {}
 
     public function index(Request $request, $artistId)
     {
