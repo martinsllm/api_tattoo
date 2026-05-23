@@ -3,6 +3,7 @@
 namespace Tests\Feature\Artist;
 
 use App\Models\ArtistProfile;
+use App\Models\Review;
 use App\Models\Style;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -573,5 +574,16 @@ class ArtistControllerTest extends TestCase
 
         $response->assertOk()
             ->assertJsonMissingPath('data.favorites_count');
+    }
+
+    public function test_show_does_not_include_reviews(): void
+    {
+        $artist = ArtistProfile::factory()->create();
+        Review::factory()->count(3)->create(['artist_profile_id' => $artist->id]);
+
+        $response = $this->getJson(route('artist.show', $artist->id));
+
+        $response->assertOk()
+            ->assertJsonMissingPath('data.reviews');
     }
 }

@@ -86,7 +86,6 @@ class ArtistController extends Controller
             'styles',
             'tags',
             'images',
-            'reviews.user',
         ])
             ->active()
             ->withCount(['favoritedBy as favorites_count'])
