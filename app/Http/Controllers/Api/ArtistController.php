@@ -88,7 +88,7 @@ class ArtistController extends Controller
             'images',
             'reviews.user',
         ])
-            ->where('is_active', true)
+            ->active()
             ->withCount(['favoritedBy as favorites_count'])
             ->findOrFail($id);
 
