@@ -30,6 +30,7 @@ class FilterArtistsRequest extends FormRequest
             'state' => ['nullable', 'string', 'max:2'],
             'q' => ['nullable', 'string', 'max:255'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
+            'sort' => ['nullable', 'string', 'in:rating,distance,newest'],
         ];
     }
 
@@ -38,6 +39,10 @@ class FilterArtistsRequest extends FormRequest
         $validator->after(function (Validator $validator) {
             $hasLat = ! is_null($this->input('lat'));
             $hasLng = ! is_null($this->input('lng'));
+
+            if ($this->input('sort') === 'distance' && (! $hasLat || ! $hasLng)) {
+                $validator->errors()->add('sort', 'O parâmetro sort deve ser enviado juntos com os parâmetros lat e lng.');
+            }
 
             if ($hasLat !== $hasLng) {
                 $validator->errors()->add('lat', 'Os parâmetros lat e lng devem ser enviados juntos.');

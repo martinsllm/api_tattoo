@@ -69,21 +69,24 @@ class ArtistProfile extends Model
 
     public function scopeWithDistance($query, $lat, $lng)
     {
-        return $query->select('artist_profiles.*')->selectRaw('
-            (6371 * acos(
-                cos(radians(?)) 
-                * cos(radians(latitude)) 
-                * cos(radians(longitude) - radians(?)) 
-                + sin(radians(?)) 
-                * sin(radians(latitude))
-            )) AS distance
-        ', [$lat, $lng, $lat]);
+        return $query->select('artist_profiles.*')
+            ->selectRaw(self::haversineSql().' AS distance', [$lat, $lng, $lat]);
     }
 
-    public function scopeWithinRadius($query, $radius)
+    public function scopeWithinRadius($query, $lat, $lng, $radius)
     {
-        return $query->having('distance', '<=', $radius)
-            ->orderBy('distance');
+        return $query->whereRaw(self::haversineSql().' <= ?', [$lat, $lng, $lat, $radius]);
+    }
+
+    private static function haversineSql(): string
+    {
+        return '(6371 * acos(
+                cos(radians(?))
+                * cos(radians(latitude))
+                * cos(radians(longitude) - radians(?))
+                + sin(radians(?))
+                * sin(radians(latitude))
+            ))';
     }
 
     public function scopeFilterStyles($query, $styles)

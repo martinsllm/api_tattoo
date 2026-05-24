@@ -41,15 +41,22 @@ class ArtistController extends Controller
         $query->withCount(['favoritedBy as favorites_count']);
 
         $hasGeo = ! is_null($lat) && ! is_null($lng);
+        $sort = $request->input('sort');
 
         // Geolocalização
         if ($hasGeo) {
             $query->withDistance($lat, $lng)
-                ->withinRadius($radius);
-        } else {
-            $query->orderByRaw('COALESCE(reviews_avg_rating, 0) DESC')
-                ->orderByDesc('reviews_count');
+                ->withinRadius($lat, $lng, $radius);
         }
+
+        match ($sort) {
+            'rating' => $query->orderByRaw('COALESCE(reviews_avg_rating, 0) DESC')
+                ->orderByDesc('reviews_count'),
+            'distance' => $query->orderBy('distance'),
+            'newest' => $query->orderByDesc('created_at'),
+            default => $hasGeo ? $query->orderBy('distance') : $query->orderByRaw('COALESCE(reviews_avg_rating, 0) DESC')
+                ->orderByDesc('reviews_count'),
+        };
 
         // Filtro por styles
         if ($request->filled('styles')) {

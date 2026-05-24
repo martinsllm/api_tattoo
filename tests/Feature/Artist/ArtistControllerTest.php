@@ -464,6 +464,78 @@ class ArtistControllerTest extends TestCase
         $response->assertStatus(422);
     }
 
+    public function test_index_sorts_by_rating(): void
+    {
+        $topRated = ArtistProfile::factory()->create(['studio_name' => 'Top Rated']);
+        Review::factory()->create(['artist_profile_id' => $topRated->id, 'rating' => 5]);
+
+        $lowRated = ArtistProfile::factory()->create(['studio_name' => 'Low Rated']);
+        Review::factory()->create(['artist_profile_id' => $lowRated->id, 'rating' => 1]);
+
+        $response = $this->getJson(route('artist.index', ['sort' => 'rating']));
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.id', $topRated->id)
+            ->assertJsonPath('data.1.id', $lowRated->id);
+    }
+
+    public function test_index_sorts_by_newest(): void
+    {
+        $older = ArtistProfile::factory()->create([
+            'studio_name' => 'Older',
+            'created_at' => now()->subDay(),
+        ]);
+        $newer = ArtistProfile::factory()->create([
+            'studio_name' => 'Newer',
+            'created_at' => now(),
+        ]);
+
+        $response = $this->getJson(route('artist.index', ['sort' => 'newest']));
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.id', $newer->id)
+            ->assertJsonPath('data.1.id', $older->id);
+    }
+
+    public function test_index_sorts_by_distance(): void
+    {
+        $nearby = ArtistProfile::factory()->create([
+            'studio_name' => 'Nearby',
+            'latitude' => -23.5505,
+            'longitude' => -46.6333,
+        ]);
+        ArtistProfile::factory()->create([
+            'studio_name' => 'Far Away',
+            'latitude' => -22.9068,
+            'longitude' => -43.1729,
+        ]);
+
+        $response = $this->getJson(route('artist.index', [
+            'lat' => -23.5505,
+            'lng' => -46.6333,
+            'radius' => 500,
+            'sort' => 'distance',
+        ]));
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.id', $nearby->id)
+            ->assertJsonPath('data.0.location.distance', 0);
+    }
+
+    public function test_index_sort_distance_requires_geo(): void
+    {
+        $response = $this->getJson(route('artist.index', ['sort' => 'distance']));
+
+        $response->assertStatus(422);
+    }
+
+    public function test_index_rejects_invalid_sort(): void
+    {
+        $response = $this->getJson(route('artist.index', ['sort' => 'name']));
+
+        $response->assertStatus(422);
+    }
+
     public function test_index_is_accessible_without_authentication(): void
     {
         ArtistProfile::factory()->create(['studio_name' => 'Estúdio Público']);
