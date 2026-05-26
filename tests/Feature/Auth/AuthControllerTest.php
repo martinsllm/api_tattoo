@@ -4,6 +4,7 @@ namespace Tests\Feature\Auth;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\Sanctum;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -35,11 +36,14 @@ class AuthControllerTest extends TestCase
                 'data' => [
                     'user' => ['id', 'name', 'email', 'created_at', 'roles'],
                     'token',
+                    'expires_at',
                 ],
                 'message',
             ])
             ->assertJsonPath('data.user.email', 'lucas@example.com')
             ->assertJsonPath('data.user.roles', ['client']);
+
+        $this->assertNotNull($response->json('data.expires_at'));
 
         $this->assertDatabaseHas('users', [
             'email' => 'lucas@example.com',
@@ -111,11 +115,27 @@ class AuthControllerTest extends TestCase
                 'data' => [
                     'user' => ['id', 'name', 'email', 'created_at', 'roles'],
                     'token',
+                    'expires_at',
                 ],
                 'message',
             ])
             ->assertJsonPath('data.user.id', $user->id)
             ->assertJsonPath('data.user.roles', ['client']);
+
+        $this->assertNotNull($response->json('data.expires_at'));
+    }
+
+    public function test_expired_token_returns_unauthenticated(): void
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('api-token', ['*'], now()->subMinute());
+
+        $response = $this->getJson(route('auth.me'), [
+            'Authorization' => 'Bearer '.$token->plainTextToken,
+        ]);
+
+        $response->assertStatus(401)
+            ->assertJson(['message' => 'Unauthenticated']);
     }
 
     public function test_login_fails_with_invalid_credentials(): void
@@ -248,7 +268,7 @@ class AuthControllerTest extends TestCase
         $response->assertOk();
 
         $this->assertTrue(
-            \Illuminate\Support\Facades\Hash::check('new-password123', $user->fresh()->password)
+            Hash::check('new-password123', $user->fresh()->password)
         );
     }
 }

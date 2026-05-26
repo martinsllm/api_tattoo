@@ -23,11 +23,12 @@ class AuthController extends Controller
             return $user;
         });
 
-        $token = $user->createToken('api-token')->plainTextToken;
+        $token = $user->createToken('api-token', ['*'], now()->addMinutes(config('sanctum.expiration')));
 
         return ApiResponse::success([
             'user' => new UserResource($user->load('roles')),
-            'token' => $token,
+            'token' => $token->plainTextToken,
+            'expires_at' => $token->accessToken->expires_at,
         ]);
     }
 
@@ -40,11 +41,12 @@ class AuthController extends Controller
         }
 
         $user = Auth::user()->load('roles');
-        $token = $user->createToken('api-token')->plainTextToken;
+        $token = $user->createToken('api-token', ['*'], now()->addMinutes(config('sanctum.expiration')));
 
         return ApiResponse::success([
             'user' => new UserResource($user),
-            'token' => $token,
+            'token' => $token->plainTextToken,
+            'expires_at' => $token->accessToken->expires_at,
         ]);
     }
 
@@ -70,6 +72,4 @@ class AuthController extends Controller
 
         return ApiResponse::success(new UserResource($user));
     }
-
-    
 }
