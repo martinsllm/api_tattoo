@@ -1,10 +1,12 @@
 <?php
 
 use App\Helpers\ApiResponse;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Routing\Exceptions\InvalidSignatureException;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Exceptions\UnauthorizedException;
 use Spatie\Permission\Middleware\PermissionMiddleware;
@@ -27,9 +29,31 @@ return Application::configure(basePath: dirname(__DIR__))
             return ApiResponse::error('Unauthenticated', 401);
         });
 
+        // 403 — link de verificação assinado inválido ou expirado
+        $exceptions->render(function (InvalidSignatureException $e, $request) {
+            return ApiResponse::error('Link de verificação inválido ou expirado.', 403);
+        });
+
+        // 403
+        $exceptions->render(function (AuthorizationException $e, $request) {
+            $message = $e->getMessage();
+
+            if ($message === '' || $message === 'This action is unauthorized.') {
+                return ApiResponse::error('Forbidden', 403);
+            }
+
+            return ApiResponse::error($message, 403);
+        });
+
         // 403
         $exceptions->render(function (AccessDeniedHttpException $e, $request) {
-            return ApiResponse::error('Forbidden', 403);
+            $message = $e->getMessage();
+
+            if ($message === '' || $message === 'Forbidden' || $message === 'This action is unauthorized.') {
+                return ApiResponse::error('Forbidden', 403);
+            }
+
+            return ApiResponse::error($message, 403);
         });
 
         // 403

@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\Admin\ReviewAdminController;
 use App\Http\Controllers\Api\ArtistController;
 use App\Http\Controllers\Api\ArtistImageController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\StyleController;
@@ -23,7 +24,16 @@ Route::middleware('throttle:60,1')->group(function () {
     Route::get('/tags', [TagController::class, 'index'])->name('tag.index');
 });
 
+Route::middleware(['signed', 'throttle:6,1'])->group(function () {
+    Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+        ->name('verification.verify');
+});
+
 Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/email/resend-verification', [EmailVerificationController::class, 'resend'])
+        ->middleware('throttle:6,1')
+        ->name('email.resend-verification');
+
     Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
     Route::get('/me', [AuthController::class, 'me'])->name('auth.me');
     Route::patch('/me', [AuthController::class, 'updateProfile'])->name('auth.update-profile');

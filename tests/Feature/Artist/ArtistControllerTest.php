@@ -63,6 +63,51 @@ class ArtistControllerTest extends TestCase
         ]);
     }
 
+    public function test_store_returns_403_when_email_is_not_verified(): void
+    {
+        $user = User::factory()->unverified()->create();
+
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson(route('artist.store'), [
+            'studio_name' => 'Tinta Preta Studio',
+            'city' => 'Curitiba',
+            'state' => 'PR',
+            'latitude' => -25.4284,
+            'longitude' => -49.2733,
+        ]);
+
+        $response->assertForbidden()
+            ->assertJsonPath('message', 'Verifique seu e-mail antes de criar um perfil de artista.');
+
+        $this->assertDatabaseMissing('artist_profiles', [
+            'user_id' => $user->id,
+        ]);
+    }
+
+    public function test_store_succeeds_after_email_is_verified(): void
+    {
+        $user = User::factory()->unverified()->create();
+        $user->markEmailAsVerified();
+
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson(route('artist.store'), [
+            'studio_name' => 'Tinta Preta Studio',
+            'city' => 'Curitiba',
+            'state' => 'PR',
+            'latitude' => -25.4284,
+            'longitude' => -49.2733,
+        ]);
+
+        $response->assertOk();
+
+        $this->assertDatabaseHas('artist_profiles', [
+            'user_id' => $user->id,
+            'studio_name' => 'Tinta Preta Studio',
+        ]);
+    }
+
     public function test_store_rejects_when_user_already_has_artist_profile(): void
     {
         $user = User::factory()->create();

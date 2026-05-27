@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Helpers\ApiResponse;
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class EmailVerificationController extends Controller
+{
+    public function resend(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if ($user->hasVerifiedEmail()) {
+            return ApiResponse::error('E-mail já verificado.', 422);
+        }
+
+        $user->sendEmailVerificationNotification();
+
+        return ApiResponse::success(null, 'Link de verificação enviado.');
+    }
+
+    public function verify(string $id, string $hash): JsonResponse
+    {
+        $user = User::findOrFail($id);
+
+        if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+            return ApiResponse::error('Link de verificação inválido.', 403);
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return ApiResponse::success(null, 'E-mail já verificado.');
+        }
+
+        $user->markEmailAsVerified();
+
+        return ApiResponse::success(null, 'E-mail verificado com sucesso.');
+    }
+}

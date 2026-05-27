@@ -103,6 +103,8 @@ class ArtistController extends Controller
 
     public function store(StoreArtistRequest $request)
     {
+        $this->authorize('create', ArtistProfile::class);
+
         $artist = $this->artistService->create($request->validated());
 
         return ApiResponse::success(new ArtistResource($artist), 'Artist created successfully');
