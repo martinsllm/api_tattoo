@@ -3,7 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
-use Illuminate\Auth\Notifications\VerifyEmail;
+use App\Notifications\EmailVerificationNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\URL;
@@ -26,7 +26,7 @@ class EmailVerificationControllerTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('message', 'Link de verificação enviado.');
 
-        Notification::assertSentTo($user, VerifyEmail::class);
+        Notification::assertSentTo($user, EmailVerificationNotification::class);
     }
 
     public function test_resend_returns_422_when_email_already_verified(): void

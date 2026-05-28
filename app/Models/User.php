@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\EmailVerificationNotification;
 use Database\Factories\UserFactory;
 use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -47,5 +48,10 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->belongsToMany(ArtistProfile::class, 'favorites')
             ->withTimestamps();
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new EmailVerificationNotification);
     }
 }
