@@ -80,6 +80,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (DomainException $e, $request) {
             return ApiResponse::error($e->getMessage(), 400);
         });
+
+        // 500
+        $exceptions->render(function (Exception $e, $request) {
+            if (app()->hasDebugModeEnabled()) {
+                return ApiResponse::error($e->getMessage(), 500);
+            }
+
+            return ApiResponse::error('Internal server error', 500);
+        });
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([

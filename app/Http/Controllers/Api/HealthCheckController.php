@@ -22,7 +22,7 @@ class HealthCheckController extends Controller
             return response()->json([
                 'status' => 'error',
                 'database' => 'error',
-                'message' => $e->getMessage(),
+                'timestamp' => now()->toIso8601String(),
             ], 503);
         }
 
