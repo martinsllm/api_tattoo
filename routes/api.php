@@ -7,10 +7,14 @@ use App\Http\Controllers\Api\ArtistImageController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\FavoriteController;
+use App\Http\Controllers\Api\HealthCheckController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\StyleController;
 use App\Http\Controllers\Api\TagController;
 use Illuminate\Support\Facades\Route;
+
+// API health check endpoint
+Route::get('/health', HealthCheckController::class)->name('health.check');
 
 Route::middleware('throttle:10,1')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->name('auth.register');
