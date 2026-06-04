@@ -74,6 +74,7 @@ class AuthController extends Controller
         if (filled($request->email) && $request->email !== $user->email) {
             $user->pending_email = $request->email;
             $user->update($profileAttributes);
+            $user->sendPendingEmailChangeNotification();
 
             return ApiResponse::success(null, 'Email de verificação enviado.');
         }

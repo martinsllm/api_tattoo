@@ -39,4 +39,25 @@ class EmailVerificationController extends Controller
 
         return ApiResponse::success(null, 'E-mail verificado com sucesso.');
     }
+
+    public function verifyChange(string $id, string $hash): JsonResponse
+    {
+        $user = User::findOrFail($id);
+
+        if (blank($user->pending_email)) {
+            return ApiResponse::error('Nenhuma troca de e-mail pendente.', 422);
+        }
+
+        if (! hash_equals((string) $hash, sha1($user->pending_email))) {
+            return ApiResponse::error('Link de verificação inválido.', 403);
+        }
+
+        $user->forceFill([
+            'email' => $user->pending_email,
+            'email_verified_at' => now(),
+            'pending_email' => null,
+        ])->save();
+
+        return ApiResponse::success(null, 'E-mail alterado com sucesso.');
+    }
 }

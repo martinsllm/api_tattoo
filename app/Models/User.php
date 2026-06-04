@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Notifications\EmailVerificationNotification;
+use App\Notifications\PendingEmailChangeNotification;
 use Database\Factories\UserFactory;
 use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Notifications\Notification;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -53,5 +55,22 @@ class User extends Authenticatable implements MustVerifyEmail
     public function sendEmailVerificationNotification(): void
     {
         $this->notify(new EmailVerificationNotification);
+    }
+
+    public function sendPendingEmailChangeNotification(): void
+    {
+        $this->notify(new PendingEmailChangeNotification);
+    }
+
+    /**
+     * @return array<int, string>|string
+     */
+    public function routeNotificationForMail(Notification $notification): array|string
+    {
+        if ($notification instanceof PendingEmailChangeNotification) {
+            return $this->pending_email;
+        }
+
+        return $this->email;
     }
 }

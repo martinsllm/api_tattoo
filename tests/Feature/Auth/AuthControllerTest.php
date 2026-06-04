@@ -3,8 +3,10 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
+use App\Notifications\PendingEmailChangeNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Laravel\Sanctum\Sanctum;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -198,8 +200,31 @@ class AuthControllerTest extends TestCase
         $response->assertStatus(401);
     }
 
+    public function test_update_profile_sends_pending_email_change_notification(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create(['email' => 'old@example.com']);
+        Sanctum::actingAs($user);
+
+        $this->patchJson(route('auth.update-profile'), [
+            'email' => 'new@example.com',
+        ])->assertOk();
+
+        Notification::assertSentTo(
+            $user,
+            PendingEmailChangeNotification::class,
+            function (PendingEmailChangeNotification $notification, array $channels, object $notifiable) use ($user): bool {
+                return $notifiable->is($user)
+                    && $notifiable->pending_email === 'new@example.com';
+            }
+        );
+    }
+
     public function test_update_profile_stores_pending_email_and_updates_name_in_same_request(): void
     {
+        Notification::fake();
+
         $user = User::factory()->create([
             'name' => 'Old Name',
             'email' => 'old@example.com',
@@ -226,6 +251,8 @@ class AuthControllerTest extends TestCase
 
     public function test_update_profile_stores_pending_email_and_updates_password_in_same_request(): void
     {
+        Notification::fake();
+
         $user = User::factory()->create([
             'email' => 'old@example.com',
             'password' => 'old-password123',

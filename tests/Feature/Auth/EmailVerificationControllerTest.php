@@ -130,4 +130,112 @@ class EmailVerificationControllerTest extends TestCase
 
         $this->assertNull($user->fresh()->email_verified_at);
     }
+
+    public function test_verify_change_applies_pending_email_with_valid_signed_url(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'old@example.com',
+            'pending_email' => 'new@example.com',
+        ]);
+
+        $url = URL::temporarySignedRoute(
+            'verification.verify-change',
+            now()->addMinutes(60),
+            [
+                'id' => $user->id,
+                'hash' => sha1($user->pending_email),
+            ]
+        );
+
+        $response = $this->getJson($url);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'E-mail alterado com sucesso.');
+
+        $user->refresh();
+
+        $this->assertSame('new@example.com', $user->email);
+        $this->assertNull($user->pending_email);
+        $this->assertNotNull($user->email_verified_at);
+    }
+
+    public function test_verify_change_returns_422_when_no_pending_email(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'user@example.com',
+            'pending_email' => null,
+        ]);
+
+        $url = URL::temporarySignedRoute(
+            'verification.verify-change',
+            now()->addMinutes(60),
+            [
+                'id' => $user->id,
+                'hash' => sha1('ghost@example.com'),
+            ]
+        );
+
+        $response = $this->getJson($url);
+
+        $response->assertStatus(422)
+            ->assertJsonPath('message', 'Nenhuma troca de e-mail pendente.');
+
+        $this->assertSame('user@example.com', $user->fresh()->email);
+    }
+
+    public function test_verify_change_returns_403_for_invalid_hash(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'old@example.com',
+            'pending_email' => 'new@example.com',
+        ]);
+
+        $url = URL::temporarySignedRoute(
+            'verification.verify-change',
+            now()->addMinutes(60),
+            [
+                'id' => $user->id,
+                'hash' => sha1('wrong@example.com'),
+            ]
+        );
+
+        $response = $this->getJson($url);
+
+        $response->assertForbidden()
+            ->assertJsonPath('message', 'Link de verificação inválido.');
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'email' => 'old@example.com',
+            'pending_email' => 'new@example.com',
+        ]);
+    }
+
+    public function test_verify_change_returns_403_for_expired_signed_url(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'old@example.com',
+            'pending_email' => 'new@example.com',
+        ]);
+
+        $url = URL::temporarySignedRoute(
+            'verification.verify-change',
+            now()->subMinute(),
+            [
+                'id' => $user->id,
+                'hash' => sha1($user->pending_email),
+            ]
+        );
+
+        $response = $this->getJson($url);
+
+        $response->assertForbidden()
+            ->assertJsonPath('message', 'Link de verificação inválido ou expirado.');
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'email' => 'old@example.com',
+            'pending_email' => 'new@example.com',
+        ]);
+    }
 }
