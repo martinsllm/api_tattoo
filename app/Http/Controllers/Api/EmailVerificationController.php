@@ -58,6 +58,12 @@ class EmailVerificationController extends Controller
             'pending_email' => null,
         ])->save();
 
+        if ($user->artistProfile) {
+            $user->artistProfile->update([
+                'is_active' => true,
+            ]);
+        }
+
         return ApiResponse::success(null, 'E-mail alterado com sucesso.');
     }
 }

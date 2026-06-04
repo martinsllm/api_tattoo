@@ -76,6 +76,12 @@ class AuthController extends Controller
             $user->update($profileAttributes);
             $user->sendPendingEmailChangeNotification();
 
+            if ($user->artistProfile) {
+                $user->artistProfile->update([
+                    'is_active' => false,
+                ]);
+            }
+
             return ApiResponse::success(null, 'Email de verificação enviado.');
         }
 

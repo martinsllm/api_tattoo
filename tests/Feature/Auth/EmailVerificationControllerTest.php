@@ -2,12 +2,14 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\ArtistProfile;
 use App\Models\User;
 use App\Notifications\EmailVerificationNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\URL;
 use Laravel\Sanctum\Sanctum;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class EmailVerificationControllerTest extends TestCase
@@ -157,6 +159,74 @@ class EmailVerificationControllerTest extends TestCase
         $this->assertSame('new@example.com', $user->email);
         $this->assertNull($user->pending_email);
         $this->assertNotNull($user->email_verified_at);
+    }
+
+    public function test_verify_change_reactivates_artist_profile(): void
+    {
+        Role::findOrCreate('artist');
+
+        $user = User::factory()->create([
+            'email' => 'old@example.com',
+            'pending_email' => 'new@example.com',
+        ]);
+        $user->assignRole('artist');
+        $artist = ArtistProfile::factory()->for($user)->inactive()->create();
+
+        $url = URL::temporarySignedRoute(
+            'verification.verify-change',
+            now()->addMinutes(60),
+            [
+                'id' => $user->id,
+                'hash' => sha1($user->pending_email),
+            ]
+        );
+
+        $this->getJson($url)->assertOk();
+
+        $this->assertDatabaseHas('artist_profiles', [
+            'id' => $artist->id,
+            'is_active' => true,
+        ]);
+    }
+
+    public function test_verify_change_returns_artist_to_catalog(): void
+    {
+        Role::findOrCreate('artist');
+
+        $user = User::factory()->create([
+            'email' => 'old@example.com',
+            'pending_email' => 'new@example.com',
+        ]);
+        $user->assignRole('artist');
+        $artist = ArtistProfile::factory()->for($user)->inactive()->create([
+            'studio_name' => 'Volta Catálogo',
+        ]);
+
+        Sanctum::actingAs(User::factory()->create());
+
+        $this->getJson(route('artist.index'))
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
+
+        $url = URL::temporarySignedRoute(
+            'verification.verify-change',
+            now()->addMinutes(60),
+            [
+                'id' => $user->id,
+                'hash' => sha1($user->pending_email),
+            ]
+        );
+
+        $this->getJson($url)->assertOk();
+
+        $this->getJson(route('artist.index'))
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $artist->id);
+
+        $this->getJson(route('artist.show', $artist->id))
+            ->assertOk()
+            ->assertJsonPath('data.studio_name', 'Volta Catálogo');
     }
 
     public function test_verify_change_returns_422_when_no_pending_email(): void

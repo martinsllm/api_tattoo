@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\ArtistProfile;
 use App\Models\User;
 use App\Notifications\PendingEmailChangeNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -275,6 +276,64 @@ class AuthControllerTest extends TestCase
         $this->assertSame('new@example.com', $user->pending_email);
         $this->assertSame('old@example.com', $user->email);
         $this->assertTrue(Hash::check('new-password123', $user->password));
+    }
+
+    public function test_update_profile_deactivates_artist_profile_when_requesting_email_change(): void
+    {
+        Notification::fake();
+
+        Role::findOrCreate('artist');
+
+        $user = User::factory()->create(['email' => 'old@example.com']);
+        $user->assignRole('artist');
+        $artist = ArtistProfile::factory()->for($user)->create(['is_active' => true]);
+
+        Sanctum::actingAs($user);
+
+        $this->patchJson(route('auth.update-profile'), [
+            'email' => 'new@example.com',
+        ])->assertOk();
+
+        $this->assertDatabaseHas('artist_profiles', [
+            'id' => $artist->id,
+            'is_active' => false,
+        ]);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'email' => 'old@example.com',
+            'pending_email' => 'new@example.com',
+        ]);
+    }
+
+    public function test_update_profile_hides_artist_from_catalog_while_email_change_is_pending(): void
+    {
+        Notification::fake();
+
+        Role::findOrCreate('artist');
+
+        $user = User::factory()->create(['email' => 'old@example.com']);
+        $user->assignRole('artist');
+        $hiddenArtist = ArtistProfile::factory()->for($user)->create([
+            'is_active' => true,
+            'studio_name' => 'Estúdio Pendente',
+        ]);
+        ArtistProfile::factory()->create(['studio_name' => 'Outro Ativo']);
+
+        Sanctum::actingAs($user);
+
+        $this->patchJson(route('auth.update-profile'), [
+            'email' => 'new@example.com',
+        ])->assertOk();
+
+        $indexResponse = $this->getJson(route('artist.index'));
+
+        $indexResponse->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.studio_name', 'Outro Ativo');
+
+        $this->getJson(route('artist.show', $hiddenArtist->id))
+            ->assertNotFound();
     }
 
     public function test_update_profile_fails_when_email_is_already_taken(): void
