@@ -198,7 +198,7 @@ class AuthControllerTest extends TestCase
         $response->assertStatus(401);
     }
 
-    public function test_update_profile_updates_name_and_email_successfully(): void
+    public function test_update_profile_stores_pending_email_and_updates_name_in_same_request(): void
     {
         $user = User::factory()->create([
             'name' => 'Old Name',
@@ -213,14 +213,41 @@ class AuthControllerTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJsonPath('data.name', 'New Name')
-            ->assertJsonPath('data.email', 'new@example.com');
+            ->assertJsonPath('message', 'Email de verificação enviado.')
+            ->assertJsonPath('data', null);
 
         $this->assertDatabaseHas('users', [
             'id' => $user->id,
             'name' => 'New Name',
-            'email' => 'new@example.com',
+            'email' => 'old@example.com',
+            'pending_email' => 'new@example.com',
         ]);
+    }
+
+    public function test_update_profile_stores_pending_email_and_updates_password_in_same_request(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'old@example.com',
+            'password' => 'old-password123',
+        ]);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->patchJson(route('auth.update-profile'), [
+            'email' => 'new@example.com',
+            'password' => 'new-password123',
+            'password_confirmation' => 'new-password123',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'Email de verificação enviado.')
+            ->assertJsonPath('data', null);
+
+        $user->refresh();
+
+        $this->assertSame('new@example.com', $user->pending_email);
+        $this->assertSame('old@example.com', $user->email);
+        $this->assertTrue(Hash::check('new-password123', $user->password));
     }
 
     public function test_update_profile_fails_when_email_is_already_taken(): void

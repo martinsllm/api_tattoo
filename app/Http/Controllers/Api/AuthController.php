@@ -68,7 +68,17 @@ class AuthController extends Controller
     {
         $user = Auth::user();
 
-        $user->update($request->validated());
+        $validated = $request->validated();
+        $profileAttributes = collect($validated)->except('email')->all();
+
+        if (filled($request->email) && $request->email !== $user->email) {
+            $user->pending_email = $request->email;
+            $user->update($profileAttributes);
+
+            return ApiResponse::success(null, 'Email de verificação enviado.');
+        }
+
+        $user->update($validated);
 
         return ApiResponse::success(new UserResource($user));
     }
