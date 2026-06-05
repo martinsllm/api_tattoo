@@ -44,6 +44,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
     Route::get('/me', [AuthController::class, 'me'])->name('auth.me');
     Route::patch('/me', [AuthController::class, 'updateProfile'])->name('auth.update-profile');
+    Route::delete('/email/cancel-pending-email', [AuthController::class, 'cancelPendingEmail'])
+        ->name('auth.cancel-pending-email');
 
     Route::post('/artists', [ArtistController::class, 'store'])->name('artist.store');
     Route::patch('/artists/{id}', [ArtistController::class, 'update'])->name('artist.update');

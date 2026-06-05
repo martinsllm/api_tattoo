@@ -384,4 +384,128 @@ class AuthControllerTest extends TestCase
             Hash::check('new-password123', $user->fresh()->password)
         );
     }
+
+    public function test_update_profile_revokes_tokens_when_requesting_email_change(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create(['email' => 'old@example.com']);
+        $user->createToken('api-token');
+        $user->createToken('api-token');
+
+        Sanctum::actingAs($user);
+
+        $this->patchJson(route('auth.update-profile'), [
+            'email' => 'new@example.com',
+        ])->assertOk();
+
+        $this->assertSame(0, $user->tokens()->count());
+    }
+
+    public function test_login_with_old_email_still_works_while_email_change_is_pending(): void
+    {
+        User::factory()->create([
+            'email' => 'old@example.com',
+            'password' => 'password123',
+            'pending_email' => 'new@example.com',
+        ]);
+
+        $response = $this->postJson(route('auth.login'), [
+            'email' => 'old@example.com',
+            'password' => 'password123',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('data.user.email', 'old@example.com');
+    }
+
+    public function test_cancel_pending_email_clears_pending_email(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'old@example.com',
+            'pending_email' => 'new@example.com',
+        ]);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->deleteJson(route('auth.cancel-pending-email'));
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'Troca de e-mail cancelada.');
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'email' => 'old@example.com',
+            'pending_email' => null,
+        ]);
+    }
+
+    public function test_cancel_pending_email_reactivates_artist_profile(): void
+    {
+        Role::findOrCreate('artist');
+
+        $user = User::factory()->create([
+            'email' => 'old@example.com',
+            'pending_email' => 'new@example.com',
+        ]);
+        $user->assignRole('artist');
+        $artist = ArtistProfile::factory()->for($user)->create(['is_active' => false]);
+
+        Sanctum::actingAs($user);
+
+        $this->deleteJson(route('auth.cancel-pending-email'))->assertOk();
+
+        $this->assertDatabaseHas('artist_profiles', [
+            'id' => $artist->id,
+            'is_active' => true,
+        ]);
+    }
+
+    public function test_cancel_pending_email_returns_artist_to_catalog(): void
+    {
+        Role::findOrCreate('artist');
+
+        $user = User::factory()->create([
+            'email' => 'old@example.com',
+            'pending_email' => 'new@example.com',
+        ]);
+        $user->assignRole('artist');
+        $hiddenArtist = ArtistProfile::factory()->for($user)->create([
+            'is_active' => false,
+            'studio_name' => 'Estúdio Cancelado',
+        ]);
+        ArtistProfile::factory()->create(['studio_name' => 'Outro Ativo']);
+
+        Sanctum::actingAs($user);
+
+        $this->deleteJson(route('auth.cancel-pending-email'))->assertOk();
+
+        $indexResponse = $this->getJson(route('artist.index'));
+
+        $indexResponse->assertOk()
+            ->assertJsonCount(2, 'data')
+            ->assertJsonFragment(['studio_name' => 'Estúdio Cancelado']);
+    }
+
+    public function test_cancel_pending_email_returns_422_when_no_pending_email(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'old@example.com',
+            'pending_email' => null,
+        ]);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->deleteJson(route('auth.cancel-pending-email'));
+
+        $response->assertStatus(422)
+            ->assertJsonPath('message', 'Nenhuma troca de e-mail pendente.');
+    }
+
+    public function test_cancel_pending_email_requires_authentication(): void
+    {
+        $response = $this->deleteJson(route('auth.cancel-pending-email'));
+
+        $response->assertStatus(401);
+    }
 }

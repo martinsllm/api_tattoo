@@ -64,6 +64,8 @@ class EmailVerificationController extends Controller
             ]);
         }
 
+        $user->tokens()->delete();
+
         return ApiResponse::success(null, 'E-mail alterado com sucesso.');
     }
 }

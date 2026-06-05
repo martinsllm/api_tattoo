@@ -92,4 +92,24 @@ class AuthController extends Controller
 
         return ApiResponse::success(new UserResource($user));
     }
+
+    public function cancelPendingEmail()
+    {
+        $user = Auth::user();
+
+        if (blank($user->pending_email)) {
+            return ApiResponse::error('Nenhuma troca de e-mail pendente.', 422);
+        }
+
+        $user->pending_email = null;
+        $user->save();
+
+        if ($user->artistProfile) {
+            $user->artistProfile->update([
+                'is_active' => true,
+            ]);
+        }
+
+        return ApiResponse::success(null, 'Troca de e-mail cancelada.');
+    }
 }
