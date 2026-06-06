@@ -303,6 +303,35 @@ class AuthControllerTest extends TestCase
             'id' => $user->id,
             'email' => 'old@example.com',
             'pending_email' => 'new@example.com',
+            'artist_catalog_suppressed_for_pending_email' => true,
+        ]);
+    }
+
+    public function test_update_profile_does_not_suppress_already_inactive_artist_when_requesting_email_change(): void
+    {
+        Notification::fake();
+
+        Role::findOrCreate('artist');
+
+        $user = User::factory()->create(['email' => 'old@example.com']);
+        $user->assignRole('artist');
+        $artist = ArtistProfile::factory()->for($user)->inactive()->create();
+
+        Sanctum::actingAs($user);
+
+        $this->patchJson(route('auth.update-profile'), [
+            'email' => 'new@example.com',
+        ])->assertOk();
+
+        $this->assertDatabaseHas('artist_profiles', [
+            'id' => $artist->id,
+            'is_active' => false,
+        ]);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'pending_email' => 'new@example.com',
+            'artist_catalog_suppressed_for_pending_email' => false,
         ]);
     }
 
@@ -447,6 +476,7 @@ class AuthControllerTest extends TestCase
         $user = User::factory()->create([
             'email' => 'old@example.com',
             'pending_email' => 'new@example.com',
+            'artist_catalog_suppressed_for_pending_email' => true,
         ]);
         $user->assignRole('artist');
         $artist = ArtistProfile::factory()->for($user)->create(['is_active' => false]);
@@ -459,6 +489,33 @@ class AuthControllerTest extends TestCase
             'id' => $artist->id,
             'is_active' => true,
         ]);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'artist_catalog_suppressed_for_pending_email' => false,
+        ]);
+    }
+
+    public function test_cancel_pending_email_keeps_inactive_artist_when_not_suppressed_by_pending_email(): void
+    {
+        Role::findOrCreate('artist');
+
+        $user = User::factory()->create([
+            'email' => 'old@example.com',
+            'pending_email' => 'new@example.com',
+            'artist_catalog_suppressed_for_pending_email' => false,
+        ]);
+        $user->assignRole('artist');
+        $artist = ArtistProfile::factory()->for($user)->inactive()->create();
+
+        Sanctum::actingAs($user);
+
+        $this->deleteJson(route('auth.cancel-pending-email'))->assertOk();
+
+        $this->assertDatabaseHas('artist_profiles', [
+            'id' => $artist->id,
+            'is_active' => false,
+        ]);
     }
 
     public function test_cancel_pending_email_returns_artist_to_catalog(): void
@@ -468,6 +525,7 @@ class AuthControllerTest extends TestCase
         $user = User::factory()->create([
             'email' => 'old@example.com',
             'pending_email' => 'new@example.com',
+            'artist_catalog_suppressed_for_pending_email' => true,
         ]);
         $user->assignRole('artist');
         $hiddenArtist = ArtistProfile::factory()->for($user)->create([

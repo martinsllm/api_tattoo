@@ -73,13 +73,15 @@ class AuthController extends Controller
 
         if (filled($request->email) && $request->email !== $user->email) {
             $user->pending_email = $request->email;
-            $user->update($profileAttributes);
 
-            if ($user->artistProfile) {
+            if ($user->artistProfile && $user->artistProfile->is_active) {
+                $user->artist_catalog_suppressed_for_pending_email = true;
                 $user->artistProfile->update([
                     'is_active' => false,
                 ]);
             }
+
+            $user->update($profileAttributes);
 
             $user->tokens()->delete();
 
@@ -102,13 +104,15 @@ class AuthController extends Controller
         }
 
         $user->pending_email = null;
-        $user->save();
 
-        if ($user->artistProfile) {
+        if ($user->artistProfile && $user->artist_catalog_suppressed_for_pending_email) {
+            $user->artist_catalog_suppressed_for_pending_email = false;
             $user->artistProfile->update([
                 'is_active' => true,
             ]);
         }
+
+        $user->save();
 
         return ApiResponse::success(null, 'Troca de e-mail cancelada.');
     }

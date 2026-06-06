@@ -52,17 +52,18 @@ class EmailVerificationController extends Controller
             return ApiResponse::error('Link de verificação inválido.', 403);
         }
 
+        if ($user->artistProfile && $user->artist_catalog_suppressed_for_pending_email) {
+            $user->artist_catalog_suppressed_for_pending_email = false;
+            $user->artistProfile->update([
+                'is_active' => true,
+            ]);
+        }
+
         $user->forceFill([
             'email' => $user->pending_email,
             'email_verified_at' => now(),
             'pending_email' => null,
         ])->save();
-
-        if ($user->artistProfile) {
-            $user->artistProfile->update([
-                'is_active' => true,
-            ]);
-        }
 
         $user->tokens()->delete();
 

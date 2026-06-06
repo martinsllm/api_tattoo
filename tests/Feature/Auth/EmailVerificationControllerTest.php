@@ -168,6 +168,7 @@ class EmailVerificationControllerTest extends TestCase
         $user = User::factory()->create([
             'email' => 'old@example.com',
             'pending_email' => 'new@example.com',
+            'artist_catalog_suppressed_for_pending_email' => true,
         ]);
         $user->assignRole('artist');
         $artist = ArtistProfile::factory()->for($user)->inactive()->create();
@@ -187,6 +188,42 @@ class EmailVerificationControllerTest extends TestCase
             'id' => $artist->id,
             'is_active' => true,
         ]);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'artist_catalog_suppressed_for_pending_email' => false,
+        ]);
+    }
+
+    public function test_verify_change_keeps_inactive_artist_when_not_suppressed_by_pending_email(): void
+    {
+        Role::findOrCreate('artist');
+
+        $user = User::factory()->create([
+            'email' => 'old@example.com',
+            'pending_email' => 'new@example.com',
+            'artist_catalog_suppressed_for_pending_email' => false,
+        ]);
+        $user->assignRole('artist');
+        $artist = ArtistProfile::factory()->for($user)->inactive()->create();
+
+        $url = URL::temporarySignedRoute(
+            'verification.verify-change',
+            now()->addMinutes(60),
+            [
+                'id' => $user->id,
+                'hash' => sha1($user->pending_email),
+            ]
+        );
+
+        $this->getJson($url)->assertOk();
+
+        $this->assertDatabaseHas('artist_profiles', [
+            'id' => $artist->id,
+            'is_active' => false,
+        ]);
+
+        $this->assertSame('new@example.com', $user->fresh()->email);
     }
 
     public function test_verify_change_returns_artist_to_catalog(): void
@@ -196,6 +233,7 @@ class EmailVerificationControllerTest extends TestCase
         $user = User::factory()->create([
             'email' => 'old@example.com',
             'pending_email' => 'new@example.com',
+            'artist_catalog_suppressed_for_pending_email' => true,
         ]);
         $user->assignRole('artist');
         $artist = ArtistProfile::factory()->for($user)->inactive()->create([

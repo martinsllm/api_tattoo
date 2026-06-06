@@ -33,6 +33,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'artist_catalog_suppressed_for_pending_email' => 'boolean',
         ];
     }
 
