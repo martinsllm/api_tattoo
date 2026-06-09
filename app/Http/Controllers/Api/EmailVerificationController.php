@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class EmailVerificationController extends Controller
 {
@@ -52,20 +53,22 @@ class EmailVerificationController extends Controller
             return ApiResponse::error('Link de verificação inválido.', 403);
         }
 
-        if ($user->artistProfile && $user->artist_catalog_suppressed_for_pending_email) {
-            $user->artist_catalog_suppressed_for_pending_email = false;
-            $user->artistProfile->update([
-                'is_active' => true,
-            ]);
-        }
+        DB::transaction(function () use ($user) {
+            if ($user->artistProfile && $user->artist_catalog_suppressed_for_pending_email) {
+                $user->artist_catalog_suppressed_for_pending_email = false;
+                $user->artistProfile->update([
+                    'is_active' => true,
+                ]);
+            }
 
-        $user->forceFill([
-            'email' => $user->pending_email,
-            'email_verified_at' => now(),
-            'pending_email' => null,
-        ])->save();
+            $user->forceFill([
+                'email' => $user->pending_email,
+                'email_verified_at' => now(),
+                'pending_email' => null,
+            ])->save();
 
-        $user->tokens()->delete();
+            $user->tokens()->delete();
+        });
 
         return ApiResponse::success(null, 'E-mail alterado com sucesso.');
     }

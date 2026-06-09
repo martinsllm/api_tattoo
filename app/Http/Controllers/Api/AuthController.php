@@ -72,18 +72,20 @@ class AuthController extends Controller
         $profileAttributes = collect($validated)->except('email')->all();
 
         if (filled($request->email) && $request->email !== $user->email) {
-            $user->pending_email = $request->email;
+            DB::transaction(function () use ($user, $request, $profileAttributes) {
+                $user->pending_email = $request->email;
 
-            if ($user->artistProfile && $user->artistProfile->is_active) {
-                $user->artist_catalog_suppressed_for_pending_email = true;
-                $user->artistProfile->update([
-                    'is_active' => false,
-                ]);
-            }
+                if ($user->artistProfile && $user->artistProfile->is_active) {
+                    $user->artist_catalog_suppressed_for_pending_email = true;
+                    $user->artistProfile->update([
+                        'is_active' => false,
+                    ]);
+                }
 
-            $user->update($profileAttributes);
+                $user->update($profileAttributes);
 
-            $user->tokens()->delete();
+                $user->tokens()->delete();
+            });
 
             $user->sendPendingEmailChangeNotification();
 
@@ -103,16 +105,18 @@ class AuthController extends Controller
             return ApiResponse::error('Nenhuma troca de e-mail pendente.', 422);
         }
 
-        $user->pending_email = null;
+        DB::transaction(function () use ($user) {
+            $user->pending_email = null;
 
-        if ($user->artistProfile && $user->artist_catalog_suppressed_for_pending_email) {
-            $user->artist_catalog_suppressed_for_pending_email = false;
-            $user->artistProfile->update([
-                'is_active' => true,
-            ]);
-        }
+            if ($user->artistProfile && $user->artist_catalog_suppressed_for_pending_email) {
+                $user->artist_catalog_suppressed_for_pending_email = false;
+                $user->artistProfile->update([
+                    'is_active' => true,
+                ]);
+            }
 
-        $user->save();
+            $user->save();
+        });
 
         return ApiResponse::success(null, 'Troca de e-mail cancelada.');
     }
