@@ -24,7 +24,7 @@ class EmailVerificationController extends Controller
         return ApiResponse::success(null, 'Link de verificação enviado.');
     }
 
-    public function verify(string $id, string $hash): JsonResponse
+    public function verify(string $id, string $hash, string $token): JsonResponse
     {
         $user = User::findOrFail($id);
 
@@ -32,16 +32,23 @@ class EmailVerificationController extends Controller
             return ApiResponse::error('Link de verificação inválido.', 403);
         }
 
+        if (! hash_equals((string) $token, $user->email_verification_token)) {
+            return ApiResponse::error('Link de verificação inválido.', 403);
+        }
+
         if ($user->hasVerifiedEmail()) {
             return ApiResponse::success(null, 'E-mail já verificado.');
         }
 
-        $user->markEmailAsVerified();
+        $user->forceFill([
+            'email_verified_at' => now(),
+            'email_verification_token' => null,
+        ])->save();
 
         return ApiResponse::success(null, 'E-mail verificado com sucesso.');
     }
 
-    public function verifyChange(string $id, string $hash): JsonResponse
+    public function verifyChange(string $id, string $hash, string $token): JsonResponse
     {
         $user = User::findOrFail($id);
 
@@ -50,6 +57,10 @@ class EmailVerificationController extends Controller
         }
 
         if (! hash_equals((string) $hash, sha1($user->pending_email))) {
+            return ApiResponse::error('Link de verificação inválido.', 403);
+        }
+
+        if (! hash_equals((string) $token, $user->pending_email_token)) {
             return ApiResponse::error('Link de verificação inválido.', 403);
         }
 
@@ -65,6 +76,7 @@ class EmailVerificationController extends Controller
                 'email' => $user->pending_email,
                 'email_verified_at' => now(),
                 'pending_email' => null,
+                'pending_email_token' => null,
             ])->save();
 
             $user->tokens()->delete();

@@ -53,41 +53,55 @@ class EmailVerificationControllerTest extends TestCase
         $response->assertUnauthorized();
     }
 
+    public function test_resend_invalidates_previous_verification_link(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->unverified()->create();
+        $oldToken = $user->rotateEmailVerificationToken();
+        $oldUrl = $this->signedVerifyUrl($user, $oldToken);
+
+        Sanctum::actingAs($user);
+
+        $this->postJson(route('email.resend-verification'))->assertOk();
+
+        $user->refresh();
+
+        $this->assertNotSame($oldToken, $user->email_verification_token);
+
+        $this->getJson($oldUrl)
+            ->assertForbidden()
+            ->assertJsonPath('message', 'Link de verificação inválido.');
+
+        $this->getJson($this->signedVerifyUrl($user))
+            ->assertOk()
+            ->assertJsonPath('message', 'E-mail verificado com sucesso.');
+    }
+
     public function test_verify_marks_email_as_verified_with_valid_signed_url(): void
     {
-        $user = User::factory()->unverified()->create();
+        $user = User::factory()->unverified()->create([
+            'email_verification_token' => 'valid-token',
+        ]);
 
-        $url = URL::temporarySignedRoute(
-            'verification.verify',
-            now()->addMinutes(60),
-            [
-                'id' => $user->id,
-                'hash' => sha1($user->getEmailForVerification()),
-            ]
-        );
-
-        $response = $this->getJson($url);
+        $response = $this->getJson($this->signedVerifyUrl($user, 'valid-token'));
 
         $response->assertOk()
             ->assertJsonPath('message', 'E-mail verificado com sucesso.');
 
-        $this->assertNotNull($user->fresh()->email_verified_at);
+        $user->refresh();
+
+        $this->assertNotNull($user->email_verified_at);
+        $this->assertNull($user->email_verification_token);
     }
 
     public function test_verify_returns_success_when_email_already_verified(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'email_verification_token' => 'valid-token',
+        ]);
 
-        $url = URL::temporarySignedRoute(
-            'verification.verify',
-            now()->addMinutes(60),
-            [
-                'id' => $user->id,
-                'hash' => sha1($user->getEmailForVerification()),
-            ]
-        );
-
-        $response = $this->getJson($url);
+        $response = $this->getJson($this->signedVerifyUrl($user, 'valid-token'));
 
         $response->assertOk()
             ->assertJsonPath('message', 'E-mail já verificado.');
@@ -95,7 +109,9 @@ class EmailVerificationControllerTest extends TestCase
 
     public function test_verify_returns_403_for_invalid_hash(): void
     {
-        $user = User::factory()->unverified()->create();
+        $user = User::factory()->unverified()->create([
+            'email_verification_token' => 'valid-token',
+        ]);
 
         $url = URL::temporarySignedRoute(
             'verification.verify',
@@ -103,6 +119,7 @@ class EmailVerificationControllerTest extends TestCase
             [
                 'id' => $user->id,
                 'hash' => sha1('wrong@email.com'),
+                'token' => 'valid-token',
             ]
         );
 
@@ -112,18 +129,27 @@ class EmailVerificationControllerTest extends TestCase
             ->assertJsonPath('message', 'Link de verificação inválido.');
     }
 
+    public function test_verify_returns_403_for_invalid_token(): void
+    {
+        $user = User::factory()->unverified()->create([
+            'email_verification_token' => 'current-token',
+        ]);
+
+        $response = $this->getJson($this->signedVerifyUrl($user, 'stale-token'));
+
+        $response->assertForbidden()
+            ->assertJsonPath('message', 'Link de verificação inválido.');
+
+        $this->assertNull($user->fresh()->email_verified_at);
+    }
+
     public function test_verify_returns_403_for_expired_signed_url(): void
     {
-        $user = User::factory()->unverified()->create();
+        $user = User::factory()->unverified()->create([
+            'email_verification_token' => 'valid-token',
+        ]);
 
-        $url = URL::temporarySignedRoute(
-            'verification.verify',
-            now()->subMinute(),
-            [
-                'id' => $user->id,
-                'hash' => sha1($user->getEmailForVerification()),
-            ]
-        );
+        $url = $this->signedVerifyUrl($user, 'valid-token', now()->subMinute());
 
         $response = $this->getJson($url);
 
@@ -138,18 +164,10 @@ class EmailVerificationControllerTest extends TestCase
         $user = User::factory()->create([
             'email' => 'old@example.com',
             'pending_email' => 'new@example.com',
+            'pending_email_token' => 'valid-token',
         ]);
 
-        $url = URL::temporarySignedRoute(
-            'verification.verify-change',
-            now()->addMinutes(60),
-            [
-                'id' => $user->id,
-                'hash' => sha1($user->pending_email),
-            ]
-        );
-
-        $response = $this->getJson($url);
+        $response = $this->getJson($this->signedVerifyChangeUrl($user, 'valid-token'));
 
         $response->assertOk()
             ->assertJsonPath('message', 'E-mail alterado com sucesso.');
@@ -158,6 +176,7 @@ class EmailVerificationControllerTest extends TestCase
 
         $this->assertSame('new@example.com', $user->email);
         $this->assertNull($user->pending_email);
+        $this->assertNull($user->pending_email_token);
         $this->assertNotNull($user->email_verified_at);
     }
 
@@ -168,21 +187,13 @@ class EmailVerificationControllerTest extends TestCase
         $user = User::factory()->create([
             'email' => 'old@example.com',
             'pending_email' => 'new@example.com',
+            'pending_email_token' => 'valid-token',
             'artist_catalog_suppressed_for_pending_email' => true,
         ]);
         $user->assignRole('artist');
         $artist = ArtistProfile::factory()->for($user)->inactive()->create();
 
-        $url = URL::temporarySignedRoute(
-            'verification.verify-change',
-            now()->addMinutes(60),
-            [
-                'id' => $user->id,
-                'hash' => sha1($user->pending_email),
-            ]
-        );
-
-        $this->getJson($url)->assertOk();
+        $this->getJson($this->signedVerifyChangeUrl($user, 'valid-token'))->assertOk();
 
         $this->assertDatabaseHas('artist_profiles', [
             'id' => $artist->id,
@@ -202,21 +213,13 @@ class EmailVerificationControllerTest extends TestCase
         $user = User::factory()->create([
             'email' => 'old@example.com',
             'pending_email' => 'new@example.com',
+            'pending_email_token' => 'valid-token',
             'artist_catalog_suppressed_for_pending_email' => false,
         ]);
         $user->assignRole('artist');
         $artist = ArtistProfile::factory()->for($user)->inactive()->create();
 
-        $url = URL::temporarySignedRoute(
-            'verification.verify-change',
-            now()->addMinutes(60),
-            [
-                'id' => $user->id,
-                'hash' => sha1($user->pending_email),
-            ]
-        );
-
-        $this->getJson($url)->assertOk();
+        $this->getJson($this->signedVerifyChangeUrl($user, 'valid-token'))->assertOk();
 
         $this->assertDatabaseHas('artist_profiles', [
             'id' => $artist->id,
@@ -233,6 +236,7 @@ class EmailVerificationControllerTest extends TestCase
         $user = User::factory()->create([
             'email' => 'old@example.com',
             'pending_email' => 'new@example.com',
+            'pending_email_token' => 'valid-token',
             'artist_catalog_suppressed_for_pending_email' => true,
         ]);
         $user->assignRole('artist');
@@ -246,16 +250,7 @@ class EmailVerificationControllerTest extends TestCase
             ->assertOk()
             ->assertJsonCount(0, 'data');
 
-        $url = URL::temporarySignedRoute(
-            'verification.verify-change',
-            now()->addMinutes(60),
-            [
-                'id' => $user->id,
-                'hash' => sha1($user->pending_email),
-            ]
-        );
-
-        $this->getJson($url)->assertOk();
+        $this->getJson($this->signedVerifyChangeUrl($user, 'valid-token'))->assertOk();
 
         $this->getJson(route('artist.index'))
             ->assertOk()
@@ -272,6 +267,7 @@ class EmailVerificationControllerTest extends TestCase
         $user = User::factory()->create([
             'email' => 'user@example.com',
             'pending_email' => null,
+            'pending_email_token' => null,
         ]);
 
         $url = URL::temporarySignedRoute(
@@ -280,6 +276,7 @@ class EmailVerificationControllerTest extends TestCase
             [
                 'id' => $user->id,
                 'hash' => sha1('ghost@example.com'),
+                'token' => 'ghost-token',
             ]
         );
 
@@ -296,6 +293,7 @@ class EmailVerificationControllerTest extends TestCase
         $user = User::factory()->create([
             'email' => 'old@example.com',
             'pending_email' => 'new@example.com',
+            'pending_email_token' => 'valid-token',
         ]);
 
         $url = URL::temporarySignedRoute(
@@ -304,10 +302,31 @@ class EmailVerificationControllerTest extends TestCase
             [
                 'id' => $user->id,
                 'hash' => sha1('wrong@example.com'),
+                'token' => 'valid-token',
             ]
         );
 
         $response = $this->getJson($url);
+
+        $response->assertForbidden()
+            ->assertJsonPath('message', 'Link de verificação inválido.');
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'email' => 'old@example.com',
+            'pending_email' => 'new@example.com',
+        ]);
+    }
+
+    public function test_verify_change_returns_403_for_invalid_token(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'old@example.com',
+            'pending_email' => 'new@example.com',
+            'pending_email_token' => 'current-token',
+        ]);
+
+        $response = $this->getJson($this->signedVerifyChangeUrl($user, 'stale-token'));
 
         $response->assertForbidden()
             ->assertJsonPath('message', 'Link de verificação inválido.');
@@ -324,16 +343,10 @@ class EmailVerificationControllerTest extends TestCase
         $user = User::factory()->create([
             'email' => 'old@example.com',
             'pending_email' => 'new@example.com',
+            'pending_email_token' => 'valid-token',
         ]);
 
-        $url = URL::temporarySignedRoute(
-            'verification.verify-change',
-            now()->subMinute(),
-            [
-                'id' => $user->id,
-                'hash' => sha1($user->pending_email),
-            ]
-        );
+        $url = $this->signedVerifyChangeUrl($user, 'valid-token', now()->subMinute());
 
         $response = $this->getJson($url);
 
@@ -345,5 +358,31 @@ class EmailVerificationControllerTest extends TestCase
             'email' => 'old@example.com',
             'pending_email' => 'new@example.com',
         ]);
+    }
+
+    private function signedVerifyUrl(User $user, ?string $token = null, ?\DateTimeInterface $expiresAt = null): string
+    {
+        return URL::temporarySignedRoute(
+            'verification.verify',
+            $expiresAt ?? now()->addMinutes(60),
+            [
+                'id' => $user->id,
+                'hash' => sha1($user->getEmailForVerification()),
+                'token' => $token ?? (string) $user->email_verification_token,
+            ]
+        );
+    }
+
+    private function signedVerifyChangeUrl(User $user, ?string $token = null, ?\DateTimeInterface $expiresAt = null): string
+    {
+        return URL::temporarySignedRoute(
+            'verification.verify-change',
+            $expiresAt ?? now()->addMinutes(60),
+            [
+                'id' => $user->id,
+                'hash' => sha1($user->pending_email),
+                'token' => $token ?? (string) $user->pending_email_token,
+            ]
+        );
     }
 }

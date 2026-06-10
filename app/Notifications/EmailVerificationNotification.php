@@ -40,6 +40,7 @@ class EmailVerificationNotification extends Notification
             [
                 'id' => $notifiable->id,
                 'hash' => sha1($notifiable->getEmailForVerification()),
+                'token' => $notifiable->email_verification_token,
             ]
         );
 

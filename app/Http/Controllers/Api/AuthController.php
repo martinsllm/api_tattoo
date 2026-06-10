@@ -75,6 +75,8 @@ class AuthController extends Controller
             DB::transaction(function () use ($user, $request, $profileAttributes) {
                 $user->pending_email = $request->email;
 
+                $user->rotatePendingEmailToken();
+
                 if ($user->artistProfile && $user->artistProfile->is_active) {
                     $user->artist_catalog_suppressed_for_pending_email = true;
                     $user->artistProfile->update([
@@ -107,6 +109,7 @@ class AuthController extends Controller
 
         DB::transaction(function () use ($user) {
             $user->pending_email = null;
+            $user->pending_email_token = null;
 
             if ($user->artistProfile && $user->artist_catalog_suppressed_for_pending_email) {
                 $user->artist_catalog_suppressed_for_pending_email = false;

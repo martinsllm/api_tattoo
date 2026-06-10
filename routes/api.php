@@ -29,10 +29,10 @@ Route::middleware('throttle:60,1')->group(function () {
 });
 
 Route::middleware(['signed', 'throttle:6,1'])->group(function () {
-    Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+    Route::get('/email/verify/{id}/{hash}/{token}', [EmailVerificationController::class, 'verify'])
         ->name('verification.verify');
 
-    Route::get('/email/verify-change/{id}/{hash}', [EmailVerificationController::class, 'verifyChange'])
+    Route::get('/email/verify-change/{id}/{hash}/{token}', [EmailVerificationController::class, 'verifyChange'])
         ->name('verification.verify-change');
 });
 

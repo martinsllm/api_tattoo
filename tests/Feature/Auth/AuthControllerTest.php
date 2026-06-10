@@ -8,6 +8,7 @@ use App\Notifications\PendingEmailChangeNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\URL;
 use Laravel\Sanctum\Sanctum;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -307,6 +308,54 @@ class AuthControllerTest extends TestCase
         ]);
     }
 
+    public function test_update_profile_invalidates_previous_pending_email_change_link(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create(['email' => 'old@example.com']);
+        Sanctum::actingAs($user);
+
+        $this->patchJson(route('auth.update-profile'), [
+            'email' => 'new@example.com',
+        ])->assertOk();
+
+        $user->refresh();
+        $oldToken = $user->pending_email_token;
+
+        $oldUrl = URL::temporarySignedRoute(
+            'verification.verify-change',
+            now()->addMinutes(60),
+            [
+                'id' => $user->id,
+                'hash' => sha1($user->pending_email),
+                'token' => $oldToken,
+            ]
+        );
+
+        $this->patchJson(route('auth.update-profile'), [
+            'email' => 'new@example.com',
+        ])->assertOk();
+
+        $user->refresh();
+
+        $this->assertNotSame($oldToken, $user->pending_email_token);
+
+        $this->getJson($oldUrl)
+            ->assertForbidden()
+            ->assertJsonPath('message', 'Link de verificação inválido.');
+
+        $this->getJson(URL::temporarySignedRoute(
+            'verification.verify-change',
+            now()->addMinutes(60),
+            [
+                'id' => $user->id,
+                'hash' => sha1($user->pending_email),
+                'token' => $user->pending_email_token,
+            ]
+        ))->assertOk()
+            ->assertJsonPath('message', 'E-mail alterado com sucesso.');
+    }
+
     public function test_update_profile_deactivates_artist_profile_when_requesting_email_change(): void
     {
         Notification::fake();
@@ -482,6 +531,7 @@ class AuthControllerTest extends TestCase
         $user = User::factory()->create([
             'email' => 'old@example.com',
             'pending_email' => 'new@example.com',
+            'pending_email_token' => 'pending-token',
         ]);
 
         Sanctum::actingAs($user);
@@ -495,6 +545,7 @@ class AuthControllerTest extends TestCase
             'id' => $user->id,
             'email' => 'old@example.com',
             'pending_email' => null,
+            'pending_email_token' => null,
         ]);
     }
 

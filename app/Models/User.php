@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -55,6 +56,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function sendEmailVerificationNotification(): void
     {
+        $this->rotateEmailVerificationToken();
         $this->notify(new EmailVerificationNotification);
     }
 
@@ -73,5 +75,25 @@ class User extends Authenticatable implements MustVerifyEmail
         }
 
         return $this->email;
+    }
+
+    public function rotateEmailVerificationToken(): string
+    {
+        $token = Str::random(64);
+        $this->forceFill([
+            'email_verification_token' => $token,
+        ])->save();
+
+        return $token;
+    }
+
+    public function rotatePendingEmailToken(): string
+    {
+        $token = Str::random(64);
+        $this->forceFill([
+            'pending_email_token' => $token,
+        ])->save();
+
+        return $token;
     }
 }

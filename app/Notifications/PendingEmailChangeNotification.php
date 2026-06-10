@@ -27,6 +27,7 @@ class PendingEmailChangeNotification extends Notification
             [
                 'id' => $notifiable->id,
                 'hash' => sha1($notifiable->pending_email),
+                'token' => $notifiable->pending_email_token,
             ]
         );
 
