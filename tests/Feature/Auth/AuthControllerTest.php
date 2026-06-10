@@ -278,6 +278,35 @@ class AuthControllerTest extends TestCase
         $this->assertTrue(Hash::check('new-password123', $user->password));
     }
 
+    public function test_update_profile_stores_pending_email_without_artist_profile(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create(['email' => 'old@example.com']);
+        $user->assignRole('client');
+
+        Sanctum::actingAs($user);
+
+        $response = $this->patchJson(route('auth.update-profile'), [
+            'email' => 'new@example.com',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'Email de verificação enviado.')
+            ->assertJsonPath('data', null);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'email' => 'old@example.com',
+            'pending_email' => 'new@example.com',
+            'artist_catalog_suppressed_for_pending_email' => false,
+        ]);
+
+        $this->assertDatabaseMissing('artist_profiles', [
+            'user_id' => $user->id,
+        ]);
+    }
+
     public function test_update_profile_deactivates_artist_profile_when_requesting_email_change(): void
     {
         Notification::fake();
