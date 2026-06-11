@@ -13,6 +13,7 @@ use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 
@@ -60,6 +61,21 @@ return Application::configure(basePath: dirname(__DIR__))
         // 403
         $exceptions->render(function (UnauthorizedException $e, $request) {
             return ApiResponse::error('Forbidden', 403);
+        });
+
+        // 403 — abort(403) lança HttpException genérica (ex.: DocsAccess)
+        $exceptions->render(function (HttpException $e, $request) {
+            if ($e->getStatusCode() !== 403) {
+                return null;
+            }
+
+            $message = $e->getMessage();
+
+            if ($message === '' || $message === 'Forbidden' || $message === 'This action is unauthorized.') {
+                return ApiResponse::error('Forbidden', 403);
+            }
+
+            return ApiResponse::error($message, 403);
         });
 
         // 429
