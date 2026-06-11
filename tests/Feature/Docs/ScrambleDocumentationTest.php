@@ -54,4 +54,30 @@ class ScrambleDocumentationTest extends TestCase
         $this->assertArrayHasKey('422', $spec['paths']['/login']['post']['responses'] ?? []);
         $this->assertArrayHasKey('401', $spec['paths']['/me']['get']['responses'] ?? []);
     }
+
+    public function test_docs_are_forbidden_in_production_when_docs_disabled(): void
+    {
+        $this->app->detectEnvironment(fn () => 'production');
+
+        config(['scramble.docs_enabled' => false]);
+
+        $this->get('/docs')
+            ->assertForbidden()
+            ->assertJsonPath('message', 'Forbidden');
+
+        $this->get('/docs.json')
+            ->assertForbidden()
+            ->assertJsonPath('message', 'Forbidden');
+    }
+
+    public function test_docs_are_accessible_in_production_when_docs_enabled(): void
+    {
+        $this->app->detectEnvironment(fn () => 'production');
+
+        config(['scramble.docs_enabled' => true]);
+
+        $this->get('/docs')->assertOk();
+
+        $this->get('/docs.json')->assertOk();
+    }
 }

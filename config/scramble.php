@@ -6,6 +6,7 @@ use Dedoc\Scramble\SecurityDocumentation\MiddlewareAuthSecurityStrategy;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
 
 return [
+    'docs_enabled' => env('DOCS_ENABLED', false),
     /*
      * Which routes to document. String or array form; use Scramble::routes() for custom selection.
      *

@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Symfony\Component\HttpFoundation\Response;
 
 class DocsAccess
@@ -18,7 +17,7 @@ class DocsAccess
             return $next($request);
         }
 
-        if (Gate::allows('viewApiDocs')) {
+        if (filter_var(config('scramble.docs_enabled'), FILTER_VALIDATE_BOOLEAN)) {
             return $next($request);
         }
 
