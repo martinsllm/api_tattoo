@@ -1,101 +1,165 @@
-# 🖋️ Tattoo Finder API
+# Tattoo Finder API
 
-API desenvolvida em Laravel para conectar usuários a tatuadores com base em geolocalização, permitindo busca por proximidade, estilos, avaliações e portfólio.
+API REST desenvolvida em **Laravel** para conectar usuários a tatuadores com base em geolocalização, permitindo busca por proximidade, filtros por estilos/tags, avaliações, favoritos e portfólio.
 
 ---
 
-## 🚀 Tecnologias
+## Tecnologias
 
-* Laravel
-* PHP 8+
-* Sanctum (auth)
+* Laravel 13
+* PHP 8.4
+* Sanctum (autenticação via tokens)
+* spatie/laravel-permission (roles & permissões)
+* Scramble (documentação OpenAPI)
 * MySQL
 
 ---
 
-## 📦 Funcionalidades
+## Funcionalidades
 
-* 🔐 Autenticação (login, registro, logout)
-* 🎨 CRUD de artistas
-* 📍 Busca por localização (raio + distância)
-* 🎯 Filtros por estilos e tags
-* 🖼️ Upload e remoção de imagens
-
----
-
-## 👤 Tipos de usuário
-
-* Cliente: usuário comum
-* Artista: usuário com `artist_profile`
+* Autenticação (registro, login, logout, perfil)
+* Verificação de e-mail e troca de e-mail com confirmação
+* CRUD de artistas (ativar / desativar perfil)
+* Busca por localização (lat/lng + raio + ordenação por distância)
+* Filtros por estilos, tags, cidade, estado e texto livre
+* Portfólio: upload, remoção e definição de imagem principal
+* Avaliações (reviews) com soft delete
+* Favoritos
+* Área administrativa (moderar artistas e reviews)
 
 ---
 
-## 🧠 Arquitetura
+## Tipos de usuário
+
+* **Cliente**: usuário comum (favorita e avalia artistas)
+* **Artista**: usuário com `artist_profile` e portfólio
+* **Admin**: modera artistas e avaliações
+
+---
+
+## Arquitetura
 
 * Controllers enxutos
 * Services (regras de negócio)
 * Form Requests (validação)
-* Resources (respostas)
+* API Resources (respostas)
+* Policies (autorização)
+* API versionada (`/api/v1`)
 
 ---
 
-## 🗄️ Principais tabelas
+## Principais tabelas
 
 * users
 * artist_profiles
 * artist_images
 * styles / tags (+ pivots)
+* reviews
+* favorites
+* permission tables (roles/permissions)
 
 ---
 
-## 📡 Endpoints
+## Endpoints
+
+Base: `/api/v1`
 
 **Auth**
 
-* POST /api/register
-* POST /api/login
-* POST /api/logout
+* POST   `/register`
+* POST   `/login`
+* POST   `/logout`
+* GET    `/me`
+* PATCH  `/me`
+
+**E-mail**
+
+* GET    `/email/verify/{id}/{hash}/{token}`
+* GET    `/email/verify-change/{id}/{hash}/{token}`
+* POST   `/email/resend-verification`
+* DELETE `/email/cancel-pending-email`
 
 **Artists**
 
-* GET /api/artists
-* GET /api/artists/{id}
-* POST /api/artists
-* PUT /api/artists/{id}
+* GET    `/artists` (busca + filtros)
+* GET    `/artists/{id}`
+* POST   `/artists`
+* PATCH  `/artists/{id}`
+* PATCH  `/artists/{id}/activate`
+* PATCH  `/artists/{id}/deactivate`
 
 **Images**
 
-* POST /api/artists/{id}/images
-* DELETE /api/images/{id}
+* POST   `/artists/{id}/images`
+* PATCH  `/images/{id}/main`
+* DELETE `/images/{id}`
+
+**Reviews**
+
+* GET    `/artists/{id}/reviews`
+* POST   `/reviews`
+* DELETE `/reviews/{id}`
+
+**Favorites**
+
+* GET    `/favorites`
+* POST   `/artists/{id}/favorite`
+
+**Outros**
+
+* GET    `/styles`
+* GET    `/tags`
+* GET    `/health`
+
+**Admin**
+
+* PATCH  `/admin/artists/{id}/activate`
+* PATCH  `/admin/artists/{id}/deactivate`
+* DELETE `/admin/reviews/{id}`
 
 ---
 
-## ⚙️ Setup
+## Documentação
+
+Documentação OpenAPI gerada via **Scramble**, disponível em `/docs`.
+Controlada pela variável `DOCS_ENABLED` (habilite em ambientes não-produtivos).
+
+---
+
+## Setup
 
 ```bash
 git clone <repo>
-cd projeto
+cd api_tattoo
 composer install
 cp .env.example .env
 php artisan key:generate
-php artisan migrate
+php artisan migrate --seed
 php artisan storage:link
 php artisan serve
 ```
 
----
+Ambiente de desenvolvimento completo (server + queue + logs + vite):
 
-## 🚧 Roadmap
-
-* Reviews
-* Favoritos
-* Imagem principal
-* Policies / permissões
+```bash
+composer run dev
+```
 
 ---
 
-## 👨‍💻 Autor
+## Testes
+
+```bash
+php artisan test
+```
+
+Suíte de testes de feature cobrindo auth, verificação de e-mail, artistas,
+imagens, reviews, favoritos e área administrativa.
+
+---
+
+## Autor
 
 Lucas Martins
 
-Projeto desenvolvido com foco em aprendizado e aprofundamento no ecossistema Laravel, explorando conceitos como construção de APIs REST, autenticação com Sanctum, organização de código com Services, Resources e boas práticas de arquitetura.
+Projeto desenvolvido com foco em aprendizado e aprofundamento no ecossistema Laravel, explorando conceitos como construção de APIs REST, autenticação com Sanctum, organização de código com Services, Resources, Policies e boas práticas de arquitetura.
