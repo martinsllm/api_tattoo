@@ -651,6 +651,58 @@ class ArtistControllerTest extends TestCase
             ->assertJsonPath('data.location.longitude', -46.6333);
     }
 
+    public function test_show_exposes_only_instagram_to_anonymous_users(): void
+    {
+        $artist = ArtistProfile::factory()->create([
+            'phone' => '+55 41 99999-0000',
+            'instagram' => '@studio_test',
+            'address' => 'Rua das Tintas, 123',
+        ]);
+
+        $response = $this->getJson(route('artist.show', $artist->id));
+
+        $response->assertOk()
+            ->assertJsonPath('data.contact.instagram', '@studio_test')
+            ->assertJsonMissingPath('data.contact.phone')
+            ->assertJsonMissingPath('data.contact.address');
+    }
+
+    public function test_show_exposes_phone_to_authenticated_non_owner_but_hides_address(): void
+    {
+        $artist = ArtistProfile::factory()->create([
+            'phone' => '+55 41 99999-0000',
+            'instagram' => '@studio_test',
+            'address' => 'Rua das Tintas, 123',
+        ]);
+
+        Sanctum::actingAs(User::factory()->create());
+
+        $response = $this->getJson(route('artist.show', $artist->id));
+
+        $response->assertOk()
+            ->assertJsonPath('data.contact.instagram', '@studio_test')
+            ->assertJsonPath('data.contact.phone', '+55 41 99999-0000')
+            ->assertJsonMissingPath('data.contact.address');
+    }
+
+    public function test_show_exposes_all_contact_fields_to_owner(): void
+    {
+        $artist = ArtistProfile::factory()->create([
+            'phone' => '+55 41 99999-0000',
+            'instagram' => '@studio_test',
+            'address' => 'Rua das Tintas, 123',
+        ]);
+
+        Sanctum::actingAs($artist->user);
+
+        $response = $this->getJson(route('artist.show', $artist->id));
+
+        $response->assertOk()
+            ->assertJsonPath('data.contact.instagram', '@studio_test')
+            ->assertJsonPath('data.contact.phone', '+55 41 99999-0000')
+            ->assertJsonPath('data.contact.address', 'Rua das Tintas, 123');
+    }
+
     public function test_index_includes_favorites_count(): void
     {
         $artist = ArtistProfile::factory()->create();
