@@ -4,23 +4,21 @@ namespace App\Http\Controllers\Api;
 
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\PaginatedRequest;
 use App\Http\Requests\StoreReviewRequest;
 use App\Http\Resources\ReviewResource;
 use App\Models\ArtistProfile;
 use App\Models\Review;
 use App\Services\ReviewService;
-use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class ReviewController extends Controller
 {
     public function __construct(private ReviewService $reviewService) {}
 
-    public function index(Request $request, $artistId)
+    public function index(PaginatedRequest $request, $artistId)
     {
         ArtistProfile::active()->findOrFail($artistId);
-
-        $request->validate(['per_page' => ['nullable', 'integer', 'min:1', 'max:50']]);
 
         $reviews = Review::where('artist_profile_id', $artistId)
             ->with('user')
