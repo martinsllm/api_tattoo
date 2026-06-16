@@ -29,7 +29,7 @@ class StoreArtistRequest extends FormRequest
             'instagram' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:255',
             'city' => 'required|string|max:100',
-            'state' => 'required|string|max:100',
+            'state' => 'required|string|size:2',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
             'styles' => 'array',
@@ -37,5 +37,14 @@ class StoreArtistRequest extends FormRequest
             'tags' => 'array',
             'tags.*' => 'exists:tags,id',
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->filled('state')) {
+            $this->merge([
+                'state' => strtoupper($this->input('state')),
+            ]);
+        }
     }
 }

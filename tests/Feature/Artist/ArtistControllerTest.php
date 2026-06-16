@@ -108,6 +108,46 @@ class ArtistControllerTest extends TestCase
         ]);
     }
 
+    public function test_store_rejects_state_longer_than_two_characters(): void
+    {
+        $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson(route('artist.store'), [
+            'studio_name' => 'Tinta Preta Studio',
+            'city' => 'Curitiba',
+            'state' => 'São Paulo',
+            'latitude' => -25.4284,
+            'longitude' => -49.2733,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors('state');
+    }
+
+    public function test_store_normalizes_state_to_uppercase(): void
+    {
+        $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson(route('artist.store'), [
+            'studio_name' => 'Tinta Preta Studio',
+            'city' => 'Curitiba',
+            'state' => 'pr',
+            'latitude' => -25.4284,
+            'longitude' => -49.2733,
+        ]);
+
+        $response->assertOk();
+
+        $this->assertDatabaseHas('artist_profiles', [
+            'user_id' => $user->id,
+            'state' => 'PR',
+        ]);
+    }
+
     public function test_store_rejects_when_user_already_has_artist_profile(): void
     {
         $user = User::factory()->create();
@@ -352,6 +392,18 @@ class ArtistControllerTest extends TestCase
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.id', $prArtist->id)
             ->assertJsonMissing(['studio_name' => 'SP Studio']);
+    }
+
+    public function test_index_filter_by_state_normalizes_lowercase(): void
+    {
+        $prArtist = ArtistProfile::factory()->create(['studio_name' => 'PR Studio', 'state' => 'PR']);
+        ArtistProfile::factory()->create(['studio_name' => 'SP Studio', 'state' => 'SP']);
+
+        $response = $this->getJson(route('artist.index', ['state' => 'pr']));
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $prArtist->id);
     }
 
     public function test_index_filters_by_studio_name(): void

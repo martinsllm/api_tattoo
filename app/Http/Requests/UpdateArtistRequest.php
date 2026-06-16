@@ -29,7 +29,7 @@ class UpdateArtistRequest extends FormRequest
             'instagram' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:255',
             'city' => 'sometimes|string|max:100',
-            'state' => 'sometimes|string|max:100',
+            'state' => 'sometimes|string|size:2',
             'latitude' => 'sometimes|numeric',
             'longitude' => 'sometimes|numeric',
             'styles' => 'array',
@@ -37,5 +37,14 @@ class UpdateArtistRequest extends FormRequest
             'tags' => 'array',
             'tags.*' => 'exists:tags,id',
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->filled('state')) {
+            $this->merge([
+                'state' => strtoupper($this->input('state')),
+            ]);
+        }
     }
 }

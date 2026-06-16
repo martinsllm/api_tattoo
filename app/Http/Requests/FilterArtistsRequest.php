@@ -27,7 +27,7 @@ class FilterArtistsRequest extends FormRequest
             'tags' => ['nullable', 'array'],
             'tags.*' => ['integer', 'exists:tags,id'],
             'city' => ['nullable', 'string', 'max:255'],
-            'state' => ['nullable', 'string', 'max:2'],
+            'state' => ['nullable', 'string', 'size:2'],
             'q' => ['nullable', 'string', 'max:255'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
             'sort' => ['nullable', 'string', 'in:rating,distance,newest'],
@@ -48,5 +48,14 @@ class FilterArtistsRequest extends FormRequest
                 $validator->errors()->add('lat', 'Os parâmetros lat e lng devem ser enviados juntos.');
             }
         });
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->filled('state')) {
+            $this->merge([
+                'state' => strtoupper($this->input('state')),
+            ]);
+        }
     }
 }
