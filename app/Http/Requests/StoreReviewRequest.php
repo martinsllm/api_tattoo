@@ -23,7 +23,7 @@ class StoreReviewRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'artist_profile_id' => 'required|exists:artist_profiles,id',
+            'artist_profile_id' => ['required', 'exists:artist_profiles,id'],
             'rating' => ['required', 'integer', 'between:1,5'],
             'comment' => ['nullable', 'string', 'max:1000'],
         ];
