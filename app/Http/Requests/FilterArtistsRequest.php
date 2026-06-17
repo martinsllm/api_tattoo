@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\BrazilianState;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 class FilterArtistsRequest extends FormRequest
@@ -27,7 +29,7 @@ class FilterArtistsRequest extends FormRequest
             'tags' => ['nullable', 'array'],
             'tags.*' => ['integer', 'exists:tags,id'],
             'city' => ['nullable', 'string', 'max:255'],
-            'state' => ['nullable', 'string', 'size:2'],
+            'state' => ['nullable', 'string', Rule::in(BrazilianState::values())],
             'q' => ['nullable', 'string', 'max:255'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
             'sort' => ['nullable', 'string', 'in:rating,distance,newest'],

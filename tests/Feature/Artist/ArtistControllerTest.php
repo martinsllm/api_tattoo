@@ -148,6 +148,24 @@ class ArtistControllerTest extends TestCase
         ]);
     }
 
+    public function test_store_rejects_nonexistent_uf(): void
+    {
+        $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson(route('artist.store'), [
+            'studio_name' => 'Tinta Preta Studio',
+            'city' => 'Curitiba',
+            'state' => 'XX',
+            'latitude' => -25.4284,
+            'longitude' => -49.2733,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors('state');
+    }
+
     public function test_store_rejects_when_user_already_has_artist_profile(): void
     {
         $user = User::factory()->create();
