@@ -37,13 +37,15 @@ class ArtistImageService
 
     public function setMain($image)
     {
-        // remove outras como main
-        $image->artist->images()->update(['is_main' => false]);
+        return DB::transaction(function () use ($image) {
+            // remove outras como main
+            $image->artist->images()->update(['is_main' => false]);
 
-        // define essa como principal
-        $image->update(['is_main' => true]);
+            // define essa como principal
+            $image->update(['is_main' => true]);
 
-        return $image;
+            return $image;
+        });
     }
 
     public function delete($image)
