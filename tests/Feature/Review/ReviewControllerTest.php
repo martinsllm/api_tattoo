@@ -290,6 +290,24 @@ class ReviewControllerTest extends TestCase
         $this->assertDatabaseCount('reviews', 1);
     }
 
+    public function test_destroy_allows_admin_to_delete_other_user_review(): void
+    {
+        $author = User::factory()->create();
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $review = Review::factory()->create(['user_id' => $author->id]);
+
+        Sanctum::actingAs($admin);
+
+        $response = $this->deleteJson(route('review.destroy', $review->id));
+
+        $response->assertOk()
+            ->assertJson(['message' => 'Review deleted successfully']);
+
+        $this->assertSoftDeleted('reviews', ['id' => $review->id]);
+        $this->assertDatabaseCount('reviews', 1);
+    }
+
     public function test_destroy_forbids_non_author(): void
     {
         $author = User::factory()->create();
