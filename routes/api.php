@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\HealthCheckController;
+use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\StyleController;
 use App\Http\Controllers\Api\TagController;
@@ -19,6 +20,8 @@ Route::get('/health', HealthCheckController::class)->name('health.check');
 Route::middleware('throttle:10,1')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->name('auth.register');
     Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
+    Route::post('/forgot-password', [PasswordResetController::class, 'forgot'])->name('password.forgot');
+    Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('password.reset');
 });
 
 Route::middleware('throttle:60,1')->group(function () {

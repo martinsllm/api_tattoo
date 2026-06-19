@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Notifications\EmailVerificationNotification;
+use App\Notifications\PasswordResetNotification;
 use App\Notifications\PendingEmailChangeNotification;
 use Database\Factories\UserFactory;
 use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
@@ -63,6 +64,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function sendPendingEmailChangeNotification(): void
     {
         $this->notify(new PendingEmailChangeNotification);
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new PasswordResetNotification($token));
     }
 
     /**
