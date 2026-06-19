@@ -9,6 +9,7 @@ use App\Policies\ArtistImagePolicy;
 use App\Policies\ArtistProfilePolicy;
 use App\Policies\ReviewPolicy;
 use Dedoc\Scramble\Scramble;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -24,6 +25,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Model::preventLazyLoading(! $this->app->environment('production'));
+
         Gate::policy(ArtistProfile::class, ArtistProfilePolicy::class);
         Gate::policy(ArtistImage::class, ArtistImagePolicy::class);
         Gate::policy(Review::class, ReviewPolicy::class);
