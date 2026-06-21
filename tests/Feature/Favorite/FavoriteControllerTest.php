@@ -185,4 +185,23 @@ class FavoriteControllerTest extends TestCase
 
         $response->assertStatus(422);
     }
+
+    public function test_authenticated_mutation_route_is_rate_limited(): void
+    {
+        $user = User::factory()->create();
+        $artist = ArtistProfile::factory()->create();
+
+        Sanctum::actingAs($user);
+
+        // esgotar o limite de 30 requisições permitidas
+        for ($i = 0; $i < 30; $i++) {
+            $this->postJson(route('artist.favorite.toggle', $artist->id))
+                ->assertStatus(200);
+        }
+
+        // a próxima requisição deve ser bloqueada
+        $this->postJson(route('artist.favorite.toggle', $artist->id))
+            ->assertStatus(429)
+            ->assertJson(['message' => 'Too many requests']);
+    }
 }

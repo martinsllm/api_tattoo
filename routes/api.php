@@ -39,7 +39,7 @@ Route::middleware(['signed', 'throttle:6,1'])->group(function () {
         ->name('verification.verify-change');
 });
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:30,1'])->group(function () {
     Route::post('/email/resend-verification', [EmailVerificationController::class, 'resend'])
         ->middleware('throttle:6,1')
         ->name('email.resend-verification');
@@ -68,7 +68,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 });
 
-Route::middleware('auth:sanctum', 'role:admin')->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::patch('/artists/{id}/deactivate', [ArtistAdminController::class, 'deactivate'])->name('artist.deactivate');
     Route::patch('/artists/{id}/activate', [ArtistAdminController::class, 'activate'])->name('artist.activate');
     Route::delete('/reviews/{id}', [ReviewAdminController::class, 'destroy'])->name('review.destroy');
