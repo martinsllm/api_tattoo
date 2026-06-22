@@ -110,7 +110,7 @@ class ArtistProfile extends Model
 
     public function scopeFilterState($query, string $state)
     {
-        return $query->where('state', 'like', '%'.$state.'%');
+        return $query->where('state', $state);
     }
 
     public function scopeFilterStudioName($query, string $studioName)
