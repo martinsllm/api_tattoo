@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 
 class FavoriteService
 {
-    public function toggle($artistId)
+    public function toggle(int $artistId): bool
     {
         $user = Auth::user();
 

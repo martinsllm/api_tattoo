@@ -14,7 +14,7 @@ class ArtistImageController extends Controller
 {
     public function __construct(private ArtistImageService $artistImageService) {}
 
-    public function store(StoreImageRequest $request, $id)
+    public function store(StoreImageRequest $request, int $id)
     {
         $artist = ArtistProfile::findOrFail($id);
 
@@ -25,7 +25,7 @@ class ArtistImageController extends Controller
         return ApiResponse::success(ArtistImageResource::collection($images), 'Images uploaded successfully', 201);
     }
 
-    public function setMain($id)
+    public function setMain(int $id)
     {
         $image = ArtistImage::findOrFail($id);
 
@@ -37,7 +37,7 @@ class ArtistImageController extends Controller
 
     }
 
-    public function destroy($id)
+    public function destroy(int $id)
     {
         $image = ArtistImage::findOrFail($id);
 

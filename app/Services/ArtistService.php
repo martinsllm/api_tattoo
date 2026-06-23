@@ -37,7 +37,7 @@ class ArtistService
         });
     }
 
-    public function update($artist, array $data): ArtistProfile
+    public function update(ArtistProfile $artist, array $data): ArtistProfile
     {
         $styles = $data['styles'] ?? null;
         $tags = $data['tags'] ?? null;
@@ -58,12 +58,12 @@ class ArtistService
         });
     }
 
-    public function deactivate(ArtistProfile $artist)
+    public function deactivate(ArtistProfile $artist): void
     {
         $artist->update(['is_active' => false]);
     }
 
-    public function activate(ArtistProfile $artist)
+    public function activate(ArtistProfile $artist): void
     {
         $artist->update(['is_active' => true]);
     }

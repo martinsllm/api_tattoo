@@ -3,12 +3,18 @@
 namespace App\Services;
 
 use App\Models\ArtistImage;
+use App\Models\ArtistProfile;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class ArtistImageService
 {
-    public function multipleUpload($artist, $files)
+    /**
+     * @param  array<int, UploadedFile>  $files
+     * @return array<int, ArtistImage>
+     */
+    public function multipleUpload(ArtistProfile $artist, array $files): array
     {
         $storedPaths = [];
 
@@ -35,7 +41,7 @@ class ArtistImageService
         }
     }
 
-    public function setMain($image)
+    public function setMain(ArtistImage $image): ArtistImage
     {
         return DB::transaction(function () use ($image) {
             // remove outras como main
@@ -48,7 +54,7 @@ class ArtistImageService
         });
     }
 
-    public function delete($image)
+    public function delete(ArtistImage $image): bool
     {
         if ($image->is_main) {
             throw new \DomainException('Cannot delete main image');
