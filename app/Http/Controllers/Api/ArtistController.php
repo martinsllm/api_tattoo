@@ -86,7 +86,7 @@ class ArtistController extends Controller
         return ApiResponse::paginate(ArtistResource::collection($query->paginate($request->integer('per_page', 10))), 'Artists retrieved successfully');
     }
 
-    public function show($id)
+    public function show(int $id)
     {
         $artist = ArtistProfile::with([
             'user',
@@ -107,10 +107,10 @@ class ArtistController extends Controller
 
         $artist = $this->artistService->create($request->validated());
 
-        return ApiResponse::success(new ArtistResource($artist), 'Artist created successfully');
+        return ApiResponse::success(new ArtistResource($artist), 'Artist created successfully', 201);
     }
 
-    public function update(UpdateArtistRequest $request, $id)
+    public function update(UpdateArtistRequest $request, int $id)
     {
         $artist = ArtistProfile::findOrFail($id);
 
@@ -121,7 +121,7 @@ class ArtistController extends Controller
         return ApiResponse::success(new ArtistResource($artist), 'Artist updated successfully');
     }
 
-    public function deactivate($id)
+    public function deactivate(int $id)
     {
         $artist = ArtistProfile::findOrFail($id);
 
@@ -132,7 +132,7 @@ class ArtistController extends Controller
         return ApiResponse::success(null, 'Artist deactivated successfully');
     }
 
-    public function activate($id)
+    public function activate(int $id)
     {
         $artist = ArtistProfile::findOrFail($id);
 

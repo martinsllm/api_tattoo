@@ -41,7 +41,7 @@ class ArtistControllerTest extends TestCase
 
         $response = $this->postJson(route('artist.store'), $payload);
 
-        $response->assertOk()
+        $response->assertCreated()
             ->assertJsonStructure([
                 'data' => [
                     'id',
@@ -100,7 +100,7 @@ class ArtistControllerTest extends TestCase
             'longitude' => -49.2733,
         ]);
 
-        $response->assertOk();
+        $response->assertCreated();
 
         $this->assertDatabaseHas('artist_profiles', [
             'user_id' => $user->id,
@@ -140,7 +140,7 @@ class ArtistControllerTest extends TestCase
             'longitude' => -49.2733,
         ]);
 
-        $response->assertOk();
+        $response->assertCreated();
 
         $this->assertDatabaseHas('artist_profiles', [
             'user_id' => $user->id,
@@ -204,7 +204,7 @@ class ArtistControllerTest extends TestCase
             'longitude' => -49.2733,
         ]);
 
-        $response->assertOk();
+        $response->assertCreated();
 
         $user->refresh();
         $this->assertTrue($user->hasRole('artist'));

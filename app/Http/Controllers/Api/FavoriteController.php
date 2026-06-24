@@ -27,7 +27,7 @@ class FavoriteController extends Controller
         return ApiResponse::paginate(ArtistResource::collection($favorites), 'Favorite artists retrieved successfully');
     }
 
-    public function toggle($artistId)
+    public function toggle(int $artistId)
     {
         if (Auth::user()->hasRole('admin')) {
             throw new AccessDeniedHttpException;

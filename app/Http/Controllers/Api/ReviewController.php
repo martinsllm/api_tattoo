@@ -16,7 +16,7 @@ class ReviewController extends Controller
 {
     public function __construct(private ReviewService $reviewService) {}
 
-    public function index(PaginatedRequest $request, $artistId)
+    public function index(PaginatedRequest $request, int $artistId)
     {
         ArtistProfile::active()->findOrFail($artistId);
 
@@ -39,7 +39,7 @@ class ReviewController extends Controller
         return ApiResponse::success(new ReviewResource($review), 'Review created successfully', 201);
     }
 
-    public function destroy($id)
+    public function destroy(int $id)
     {
         $review = Review::findOrFail($id);
 
