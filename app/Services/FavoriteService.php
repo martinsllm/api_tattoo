@@ -2,21 +2,19 @@
 
 namespace App\Services;
 
-use App\Models\ArtistProfile;
+use App\Traits\ResolvesActiveArtist;
 use Illuminate\Support\Facades\Auth;
 
 class FavoriteService
 {
+    use ResolvesActiveArtist;
+
     public function toggle(int $artistId): bool
     {
         $user = Auth::user();
 
-        $artist = ArtistProfile::active()->findOrFail($artistId);
-
         // impedir autofavorito
-        if ($artist->user_id === $user->id) {
-            throw new \DomainException('You cannot favorite yourself');
-        }
+        $this->resolveActiveArtistForAction($artistId, 'You cannot favorite yourself.');
 
         if ($user->favorites()->where('artist_profile_id', $artistId)->exists()) {
             $user->favorites()->detach($artistId);

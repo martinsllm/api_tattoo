@@ -118,7 +118,7 @@ class FavoriteControllerTest extends TestCase
         $response = $this->postJson(route('artist.favorite.toggle', $artist->id));
 
         $response->assertStatus(400)
-            ->assertJson(['message' => 'You cannot favorite yourself']);
+            ->assertJson(['message' => 'You cannot favorite yourself.']);
 
         $this->assertDatabaseMissing('favorites', [
             'user_id' => $user->id,

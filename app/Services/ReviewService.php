@@ -2,23 +2,21 @@
 
 namespace App\Services;
 
-use App\Models\ArtistProfile;
 use App\Models\Review;
+use App\Traits\ResolvesActiveArtist;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Auth;
 
 class ReviewService
 {
+    use ResolvesActiveArtist;
+
     public function create(array $data): Review
     {
         $user = Auth::user();
 
         // impedir autoavaliação
-        $artist = ArtistProfile::active()->findOrFail($data['artist_profile_id']);
-
-        if ($artist->user_id === $user->id) {
-            throw new \DomainException('You cannot review yourself.');
-        }
+        $artist = $this->resolveActiveArtistForAction($data['artist_profile_id'], 'You cannot review yourself.');
 
         $existingReview = $artist->reviews()->withTrashed()->where('user_id', $user->id)->first();
 
