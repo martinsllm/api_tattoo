@@ -14,10 +14,8 @@ class ArtistImageController extends Controller
 {
     public function __construct(private ArtistImageService $artistImageService) {}
 
-    public function store(StoreImageRequest $request, int $id)
+    public function store(StoreImageRequest $request, ArtistProfile $artist)
     {
-        $artist = ArtistProfile::findOrFail($id);
-
         $this->authorize('update', $artist);
 
         $images = $this->artistImageService->multipleUpload($artist, $request->file('images', []));
@@ -25,10 +23,8 @@ class ArtistImageController extends Controller
         return ApiResponse::success(ArtistImageResource::collection($images), 'Images uploaded successfully', 201);
     }
 
-    public function setMain(int $id)
+    public function setMain(ArtistImage $image)
     {
-        $image = ArtistImage::findOrFail($id);
-
         $this->authorize('update', $image);
 
         $image = $this->artistImageService->setMain($image);
@@ -37,10 +33,8 @@ class ArtistImageController extends Controller
 
     }
 
-    public function destroy(int $id)
+    public function destroy(ArtistImage $image)
     {
-        $image = ArtistImage::findOrFail($id);
-
         $this->authorize('delete', $image);
 
         $this->artistImageService->delete($image);

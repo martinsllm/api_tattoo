@@ -11,19 +11,15 @@ class ArtistAdminController extends Controller
 {
     public function __construct(private ArtistService $artistService) {}
 
-    public function deactivate($id)
+    public function deactivate(ArtistProfile $artist)
     {
-        $artist = ArtistProfile::findOrFail($id);
-
         $this->artistService->deactivate($artist);
 
         return ApiResponse::success(null, 'Artist deactivated successfully');
     }
 
-    public function activate($id)
+    public function activate(ArtistProfile $artist)
     {
-        $artist = ArtistProfile::findOrFail($id);
-
         $this->artistService->activate($artist);
 
         return ApiResponse::success(null, 'Artist activated successfully');

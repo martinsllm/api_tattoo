@@ -8,10 +8,8 @@ use App\Models\Review;
 
 class ReviewAdminController extends Controller
 {
-    public function destroy($id)
+    public function destroy(Review $review)
     {
-        $review = Review::findOrFail($id);
-
         $review->deleteOrFail();
 
         return ApiResponse::success(null, 'Review deleted successfully');

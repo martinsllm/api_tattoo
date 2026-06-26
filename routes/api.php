@@ -51,17 +51,17 @@ Route::middleware(['auth:sanctum', 'throttle:30,1'])->group(function () {
         ->name('auth.cancel-pending-email');
 
     Route::post('/artists', [ArtistController::class, 'store'])->name('artist.store');
-    Route::patch('/artists/{id}', [ArtistController::class, 'update'])->name('artist.update');
-    Route::patch('/artists/{id}/deactivate', [ArtistController::class, 'deactivate'])->name('artist.deactivate');
-    Route::patch('/artists/{id}/activate', [ArtistController::class, 'activate'])->name('artist.activate');
+    Route::patch('/artists/{artist}', [ArtistController::class, 'update'])->name('artist.update');
+    Route::patch('/artists/{artist}/deactivate', [ArtistController::class, 'deactivate'])->name('artist.deactivate');
+    Route::patch('/artists/{artist}/activate', [ArtistController::class, 'activate'])->name('artist.activate');
 
-    Route::post('/artists/{id}/images', [ArtistImageController::class, 'store'])->name('artist.image.store');
-    Route::delete('/images/{id}', [ArtistImageController::class, 'destroy'])->name('artist.image.destroy');
-    Route::patch('/images/{id}/main', [ArtistImageController::class, 'setMain'])->name('artist.image.set-main');
+    Route::post('/artists/{artist}/images', [ArtistImageController::class, 'store'])->name('artist.image.store');
+    Route::delete('/images/{image}', [ArtistImageController::class, 'destroy'])->name('artist.image.destroy');
+    Route::patch('/images/{image}/main', [ArtistImageController::class, 'setMain'])->name('artist.image.set-main');
 
     Route::post('/reviews', [ReviewController::class, 'store'])->name('review.store');
     Route::get('/artists/{id}/reviews', [ReviewController::class, 'index'])->name('artist.review.index');
-    Route::delete('/reviews/{id}', [ReviewController::class, 'destroy'])->name('review.destroy');
+    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('review.destroy');
 
     Route::post('/artists/{id}/favorite', [FavoriteController::class, 'toggle'])->name('artist.favorite.toggle');
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorite.index');
@@ -69,7 +69,7 @@ Route::middleware(['auth:sanctum', 'throttle:30,1'])->group(function () {
 });
 
 Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::patch('/artists/{id}/deactivate', [ArtistAdminController::class, 'deactivate'])->name('artist.deactivate');
-    Route::patch('/artists/{id}/activate', [ArtistAdminController::class, 'activate'])->name('artist.activate');
-    Route::delete('/reviews/{id}', [ReviewAdminController::class, 'destroy'])->name('review.destroy');
+    Route::patch('/artists/{artist}/deactivate', [ArtistAdminController::class, 'deactivate'])->name('artist.deactivate');
+    Route::patch('/artists/{artist}/activate', [ArtistAdminController::class, 'activate'])->name('artist.activate');
+    Route::delete('/reviews/{review}', [ReviewAdminController::class, 'destroy'])->name('review.destroy');
 });

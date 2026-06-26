@@ -50,7 +50,7 @@ class ScrambleDocumentationTest extends TestCase
         $this->assertNotEmpty($artistsSchema['properties']['data']['items'] ?? null);
 
         $this->assertArrayHasKey('404', $spec['paths']['/artists/{id}']['get']['responses'] ?? []);
-        $this->assertArrayHasKey('403', $spec['paths']['/admin/artists/{id}/deactivate']['patch']['responses'] ?? []);
+        $this->assertArrayHasKey('403', $spec['paths']['/admin/artists/{artist}/deactivate']['patch']['responses'] ?? []);
         $this->assertArrayHasKey('422', $spec['paths']['/login']['post']['responses'] ?? []);
         $this->assertArrayHasKey('401', $spec['paths']['/me']['get']['responses'] ?? []);
     }

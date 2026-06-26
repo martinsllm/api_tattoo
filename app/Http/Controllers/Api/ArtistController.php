@@ -110,10 +110,8 @@ class ArtistController extends Controller
         return ApiResponse::success(new ArtistResource($artist), 'Artist created successfully', 201);
     }
 
-    public function update(UpdateArtistRequest $request, int $id)
+    public function update(UpdateArtistRequest $request, ArtistProfile $artist)
     {
-        $artist = ArtistProfile::findOrFail($id);
-
         $this->authorize('update', $artist);
 
         $artist = $this->artistService->update($artist, $request->validated());
@@ -121,10 +119,8 @@ class ArtistController extends Controller
         return ApiResponse::success(new ArtistResource($artist), 'Artist updated successfully');
     }
 
-    public function deactivate(int $id)
+    public function deactivate(ArtistProfile $artist)
     {
-        $artist = ArtistProfile::findOrFail($id);
-
         $this->authorize('update', $artist);
 
         $this->artistService->deactivate($artist);
@@ -132,10 +128,8 @@ class ArtistController extends Controller
         return ApiResponse::success(null, 'Artist deactivated successfully');
     }
 
-    public function activate(int $id)
+    public function activate(ArtistProfile $artist)
     {
-        $artist = ArtistProfile::findOrFail($id);
-
         $this->authorize('update', $artist);
 
         $this->artistService->activate($artist);
