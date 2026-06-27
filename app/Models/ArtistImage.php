@@ -17,6 +17,10 @@ class ArtistImage extends Model
         'is_main',
     ];
 
+    protected $casts = [
+        'is_main' => 'boolean',
+    ];
+
     public function artist()
     {
         return $this->belongsTo(ArtistProfile::class, 'artist_profile_id');

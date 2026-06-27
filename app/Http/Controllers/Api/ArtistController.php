@@ -31,7 +31,7 @@ class ArtistController extends Controller
             'user',
             'styles',
             'tags',
-            'images',
+            'mainImage',
         ])
             ->active();
 

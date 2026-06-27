@@ -42,6 +42,11 @@ class ArtistProfile extends Model
         return $this->hasMany(ArtistImage::class);
     }
 
+    public function mainImage()
+    {
+        return $this->hasOne(ArtistImage::class)->where('is_main', true);
+    }
+
     public function styles()
     {
         return $this->belongsToMany(Style::class, 'artist_style');

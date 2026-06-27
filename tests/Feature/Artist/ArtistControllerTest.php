@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Artist;
 
+use App\Models\ArtistImage;
 use App\Models\ArtistProfile;
 use App\Models\Review;
 use App\Models\Style;
@@ -824,5 +825,42 @@ class ArtistControllerTest extends TestCase
 
         $response->assertOk()
             ->assertJsonMissingPath('data.reviews');
+    }
+
+    public function test_index_returns_only_main_image_not_full_portfolio(): void
+    {
+        $artist = ArtistProfile::factory()->create();
+        ArtistImage::factory()->for($artist, 'artist')->count(2)->create();
+        $main = ArtistImage::factory()->for($artist, 'artist')->main()->create();
+
+        $response = $this->getJson(route('artist.index'));
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.main_image.id', $main->id)
+            ->assertJsonPath('data.0.main_image.is_main', true)
+            ->assertJsonMissingPath('data.0.images');
+    }
+
+    public function test_index_returns_null_main_image_when_artist_has_none(): void
+    {
+        $artist = ArtistProfile::factory()->create();
+        ArtistImage::factory()->for($artist, 'artist')->count(2)->create();
+
+        $response = $this->getJson(route('artist.index'));
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.main_image', null);
+    }
+
+    public function test_show_includes_full_portfolio_images(): void
+    {
+        $artist = ArtistProfile::factory()->create();
+        ArtistImage::factory()->for($artist, 'artist')->count(3)->create();
+
+        $response = $this->getJson(route('artist.show', $artist->id));
+
+        $response->assertOk()
+            ->assertJsonCount(3, 'data.images')
+            ->assertJsonMissingPath('data.main_image');
     }
 }

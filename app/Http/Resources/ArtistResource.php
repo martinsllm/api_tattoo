@@ -56,6 +56,7 @@ class ArtistResource extends JsonResource
             'tags' => $this->whenLoaded('tags', fn () => $this->tags->pluck('name')),
 
             'images' => $this->whenLoaded('images', fn () => ArtistImageResource::collection($this->images)),
+            'main_image' => $this->whenLoaded('mainImage', fn () => $this->mainImage ? new ArtistImageResource($this->mainImage) : null),
 
             'created_at' => $this->created_at,
         ];
