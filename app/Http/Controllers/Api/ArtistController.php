@@ -50,12 +50,10 @@ class ArtistController extends Controller
         }
 
         match ($sort) {
-            'rating' => $query->orderByRaw('COALESCE(reviews_avg_rating, 0) DESC')
-                ->orderByDesc('reviews_count'),
+            'rating' => $query->orderByRating(),
             'distance' => $query->orderBy('distance'),
             'newest' => $query->orderByDesc('created_at'),
-            default => $hasGeo ? $query->orderBy('distance') : $query->orderByRaw('COALESCE(reviews_avg_rating, 0) DESC')
-                ->orderByDesc('reviews_count'),
+            default => $hasGeo ? $query->orderBy('distance') : $query->orderByRating(),
         };
 
         // Filtro por styles
