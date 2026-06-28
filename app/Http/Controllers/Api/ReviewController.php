@@ -18,9 +18,9 @@ class ReviewController extends Controller
 
     public function index(PaginatedRequest $request, int $artistId)
     {
-        ArtistProfile::active()->findOrFail($artistId);
+        $artist = ArtistProfile::active()->findOrFail($artistId);
 
-        $reviews = Review::where('artist_profile_id', $artistId)
+        $reviews = $artist->reviews()
             ->with('user')
             ->latest()
             ->paginate($request->integer('per_page', 10));
