@@ -94,6 +94,7 @@ class ArtistController extends Controller
         ])
             ->active()
             ->withCount(['favoritedBy as favorites_count'])
+            ->withAvg('reviews', 'rating')
             ->findOrFail($id);
 
         return ApiResponse::success(new ArtistResource($artist), 'Artist retrieved successfully');
