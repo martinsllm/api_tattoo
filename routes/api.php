@@ -19,7 +19,8 @@ Route::get('/health', HealthCheckController::class)->name('health.check');
 
 Route::middleware('throttle:10,1')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->name('auth.register');
-    Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
+    Route::post('/login', [AuthController::class, 'login'])->name('auth.login')
+        ->middleware('throttle:login');
     Route::post('/forgot-password', [PasswordResetController::class, 'forgot'])->name('password.forgot');
     Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('password.reset');
 });

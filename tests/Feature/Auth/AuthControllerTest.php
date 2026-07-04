@@ -160,6 +160,91 @@ class AuthControllerTest extends TestCase
             ]);
     }
 
+    public function test_login_is_throttled_per_account_after_five_failed_attempts(): void
+    {
+        User::factory()->create([
+            'email' => 'lucas@example.com',
+            'password' => 'password123',
+        ]);
+
+        $credentials = [
+            'email' => 'lucas@example.com',
+            'password' => 'wrong-password',
+        ];
+
+        // As 5 primeiras tentativas passam pelo limiter `login` (5/min por email|ip) e falham com 401.
+        for ($attempt = 1; $attempt <= 5; $attempt++) {
+            $this->postJson(route('auth.login'), $credentials)
+                ->assertStatus(401);
+        }
+
+        // A 6ª estoura o balde e é barrada antes de chegar no controller, com mensagem genérica.
+        $this->postJson(route('auth.login'), $credentials)
+            ->assertStatus(429)
+            ->assertJsonPath('message', 'Too many requests');
+    }
+
+    public function test_login_throttle_is_isolated_per_account(): void
+    {
+        User::factory()->create([
+            'email' => 'victim@example.com',
+            'password' => 'password123',
+        ]);
+
+        $other = User::factory()->create([
+            'email' => 'other@example.com',
+            'password' => 'password123',
+        ]);
+        $other->assignRole('client');
+
+        // Esgota o balde `email|ip` da primeira conta.
+        for ($attempt = 1; $attempt <= 5; $attempt++) {
+            $this->postJson(route('auth.login'), [
+                'email' => 'victim@example.com',
+                'password' => 'wrong-password',
+            ]);
+        }
+
+        $this->postJson(route('auth.login'), [
+            'email' => 'victim@example.com',
+            'password' => 'wrong-password',
+        ])->assertStatus(429);
+
+        // Outra conta usa um balde distinto e loga normalmente, sem ser afetada.
+        $this->postJson(route('auth.login'), [
+            'email' => 'other@example.com',
+            'password' => 'password123',
+        ])->assertOk();
+    }
+
+    public function test_login_throttle_blocks_same_account_across_multiple_ips(): void
+    {
+        User::factory()->create([
+            'email' => 'victim@example.com',
+            'password' => 'password123',
+        ]);
+
+        $credentials = [
+            'email' => 'victim@example.com',
+            'password' => 'wrong-password',
+        ];
+
+        // 20 tentativas espalhadas em 4 IPs (5 cada). Nenhuma estoura o balde `email|ip` (5/min),
+        // mas somadas enchem o balde por-conta (20/min), que ignora o IP.
+        foreach (['10.0.0.1', '10.0.0.2', '10.0.0.3', '10.0.0.4'] as $ip) {
+            for ($attempt = 1; $attempt <= 5; $attempt++) {
+                $this->withServerVariables(['REMOTE_ADDR' => $ip])
+                    ->postJson(route('auth.login'), $credentials)
+                    ->assertStatus(401);
+            }
+        }
+
+        // Um IP totalmente novo: o balde `email|ip` está zerado, mas o balde por-conta já estourou.
+        $this->withServerVariables(['REMOTE_ADDR' => '10.0.0.99'])
+            ->postJson(route('auth.login'), $credentials)
+            ->assertStatus(429);
+    }
+
     public function test_logout_revokes_authenticated_user_tokens(): void
     {
         $user = User::factory()->create();
