@@ -69,7 +69,7 @@ Route::middleware(['auth:sanctum', 'throttle:30,1'])->group(function () {
 
 });
 
-Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth:sanctum', 'role:admin', 'throttle:30,1'])->prefix('admin')->name('admin.')->group(function () {
     Route::patch('/artists/{artist}/deactivate', [ArtistAdminController::class, 'deactivate'])->name('artist.deactivate');
     Route::patch('/artists/{artist}/activate', [ArtistAdminController::class, 'activate'])->name('artist.activate');
     Route::delete('/reviews/{review}', [ReviewAdminController::class, 'destroy'])->name('review.destroy');

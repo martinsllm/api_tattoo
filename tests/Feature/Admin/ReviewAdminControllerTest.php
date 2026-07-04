@@ -5,6 +5,7 @@ namespace Tests\Feature\Admin;
 use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use Laravel\Sanctum\Sanctum;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -97,5 +98,14 @@ class ReviewAdminControllerTest extends TestCase
 
         $response->assertStatus(404)
             ->assertJson(['message' => 'Resource not found']);
+    }
+
+    public function test_admin_group_has_throttle_middleware(): void
+    {
+        $middleware = Route::getRoutes()
+            ->getByName('admin.review.destroy')
+            ->gatherMiddleware();
+
+        $this->assertContains('throttle:30,1', $middleware);
     }
 }
