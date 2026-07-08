@@ -62,6 +62,44 @@ class ArtistAdminControllerTest extends TestCase
         ]);
     }
 
+    public function test_deactivate_records_audit_log_with_actor_and_target(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $artist = ArtistProfile::factory()->create(['is_active' => true]);
+
+        Sanctum::actingAs($admin);
+
+        $this->patchJson(route('admin.artist.deactivate', $artist->id))->assertOk();
+
+        $this->assertDatabaseHas('audit_logs', [
+            'actor_user_id' => $admin->id,
+            'action' => 'artist.deactivate',
+            'auditable_type' => ArtistProfile::class,
+            'auditable_id' => $artist->id,
+        ]);
+    }
+
+    public function test_activate_records_audit_log_with_actor_and_target(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $artist = ArtistProfile::factory()->inactive()->create();
+
+        Sanctum::actingAs($admin);
+
+        $this->patchJson(route('admin.artist.activate', $artist->id))->assertOk();
+
+        $this->assertDatabaseHas('audit_logs', [
+            'actor_user_id' => $admin->id,
+            'action' => 'artist.activate',
+            'auditable_type' => ArtistProfile::class,
+            'auditable_id' => $artist->id,
+        ]);
+    }
+
     public function test_deactivate_forbids_anonymous_user(): void
     {
         $artist = ArtistProfile::factory()->create(['is_active' => true]);

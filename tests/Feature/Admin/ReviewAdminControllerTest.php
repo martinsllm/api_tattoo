@@ -41,6 +41,25 @@ class ReviewAdminControllerTest extends TestCase
         $this->assertDatabaseCount('reviews', 1);
     }
 
+    public function test_destroy_records_audit_log_with_actor_and_target(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $review = Review::factory()->create();
+
+        Sanctum::actingAs($admin);
+
+        $this->deleteJson(route('admin.review.destroy', $review->id))->assertOk();
+
+        $this->assertDatabaseHas('audit_logs', [
+            'actor_user_id' => $admin->id,
+            'action' => 'review.delete',
+            'auditable_type' => Review::class,
+            'auditable_id' => $review->id,
+        ]);
+    }
+
     public function test_destroy_forbids_anonymous_user(): void
     {
         $review = Review::factory()->create();
