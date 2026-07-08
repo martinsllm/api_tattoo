@@ -136,6 +136,50 @@ class ArtistImageControllerTest extends TestCase
         $this->assertEmpty(Storage::disk('public')->files('artists'));
     }
 
+    public function test_store_rejects_files_with_spoofed_content_type(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $artist = ArtistProfile::factory()->for($user)->create();
+
+        $response = $this->postJson(route('artist.image.store', $artist->id), [
+            'images' => [
+                UploadedFile::fake()->create('portfolio.jpg', 100, 'text/plain'),
+            ],
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['images.0']);
+
+        $this->assertDatabaseCount('artist_images', 0);
+        $this->assertEmpty(Storage::disk('public')->files('artists'));
+    }
+
+    public function test_store_rejects_images_exceeding_max_dimensions(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $artist = ArtistProfile::factory()->for($user)->create();
+
+        $response = $this->postJson(route('artist.image.store', $artist->id), [
+            'images' => [
+                UploadedFile::fake()->image('oversized.jpg', 5000, 5000),
+            ],
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['images.0']);
+
+        $this->assertDatabaseCount('artist_images', 0);
+        $this->assertEmpty(Storage::disk('public')->files('artists'));
+    }
+
     public function test_set_main_promotes_target_image_and_demotes_previous(): void
     {
         Storage::fake('public');
