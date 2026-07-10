@@ -345,4 +345,41 @@ class ReviewControllerTest extends TestCase
         $response->assertStatus(404)
             ->assertJson(['message' => 'Resource not found']);
     }
+
+    public function test_deleting_user_anonymizes_reviews_and_preserves_artist_average_rating(): void
+    {
+        $user = User::factory()->create();
+        $artist = ArtistProfile::factory()->create();
+
+        // Create reviews by the user
+        Review::factory()->create([
+            'user_id' => $user->id,
+            'artist_profile_id' => $artist->id,
+            'rating' => 4,
+        ]);
+
+        // Create reviews by other users
+        Review::factory()->create([
+            'artist_profile_id' => $artist->id,
+            'rating' => 5,
+        ]);
+
+        // Calculate expected average rating
+        $expectedAverageRating = 4.5; // (4 + 5) / 2
+
+        // Delete the user
+        $user->delete();
+
+        // Check that the user's reviews are anonymized
+        $this->assertDatabaseMissing('reviews', ['user_id' => $user->id]);
+        $this->assertDatabaseCount('reviews', 2); // Total reviews should still be 2
+
+        // Get the artist's average rating
+        $averageRating = ArtistProfile::withAvg('reviews', 'rating')
+            ->find($artist->id)
+            ->reviews_avg_rating;
+
+        // Check that the artist's average_rating is preserved
+        $this->assertEquals($expectedAverageRating, $averageRating);
+    }
 }
