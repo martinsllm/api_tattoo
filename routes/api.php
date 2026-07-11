@@ -48,6 +48,7 @@ Route::middleware(['auth:sanctum', 'throttle:30,1'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
     Route::get('/me', [AuthController::class, 'me'])->name('auth.me');
     Route::patch('/me', [AuthController::class, 'updateProfile'])->name('auth.update-profile');
+    Route::delete('/me', [AuthController::class, 'destroy'])->name('auth.delete');
     Route::delete('/email/cancel-pending-email', [AuthController::class, 'cancelPendingEmail'])
         ->name('auth.cancel-pending-email');
 
