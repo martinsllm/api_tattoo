@@ -32,6 +32,7 @@ class AuthControllerTest extends TestCase
             'email' => 'lucas@example.com',
             'password' => 'password123',
             'password_confirmation' => 'password123',
+            'accepted_terms' => true,
         ];
 
         $response = $this->postJson(route('auth.register'), $payload);
@@ -54,6 +55,9 @@ class AuthControllerTest extends TestCase
             'email' => 'lucas@example.com',
             'name' => 'Lucas Tattoo',
         ]);
+
+        $user = User::where('email', 'lucas@example.com')->firstOrFail();
+        $this->assertNotNull($user->accepted_terms_at);
     }
 
     public function test_register_assigns_client_role_to_new_user(): void
@@ -63,6 +67,7 @@ class AuthControllerTest extends TestCase
             'email' => 'lucas@example.com',
             'password' => 'password123',
             'password_confirmation' => 'password123',
+            'accepted_terms' => true,
         ]);
 
         $response->assertOk();
@@ -80,6 +85,7 @@ class AuthControllerTest extends TestCase
             'email' => 'lucas@example.com',
             'password' => 'password123',
             'password_confirmation' => 'password123',
+            'accepted_terms' => true,
         ]);
 
         $response->assertStatus(422)
@@ -96,10 +102,28 @@ class AuthControllerTest extends TestCase
             'email' => 'lucas@example.com',
             'password' => '123',
             'password_confirmation' => '123',
+            'accepted_terms' => true,
         ]);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors('password');
+    }
+
+    public function test_register_fails_when_terms_are_not_accepted(): void
+    {
+        $response = $this->postJson(route('auth.register'), [
+            'name' => 'Lucas Tattoo',
+            'email' => 'lucas@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors('accepted_terms');
+
+        $this->assertDatabaseMissing('users', [
+            'email' => 'lucas@example.com',
+        ]);
     }
 
     public function test_login_returns_token_with_valid_credentials(): void

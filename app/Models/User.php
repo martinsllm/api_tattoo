@@ -18,7 +18,7 @@ use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'password', 'accepted_terms_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -35,6 +35,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'accepted_terms_at' => 'datetime',
             'artist_catalog_suppressed_for_pending_email' => 'boolean',
         ];
     }

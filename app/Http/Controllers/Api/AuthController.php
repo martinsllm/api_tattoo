@@ -20,7 +20,13 @@ class AuthController extends Controller
     public function register(StoreUserRequest $request)
     {
         $user = DB::transaction(function () use ($request) {
-            $user = User::create($request->validated());
+            $validated = $request->validated();
+
+            unset($validated['accepted_terms']);
+
+            $validated['accepted_terms_at'] = now();
+
+            $user = User::create($validated);
             $user->assignRole('client');
 
             return $user;
