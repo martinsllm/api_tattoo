@@ -51,5 +51,10 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
+        RateLimiter::for('export', function (Request $request) {
+            $identifier = $request->user()?->getAuthIdentifier() ?? $request->ip();
+
+            return Limit::perMinute(3)->by('export|'.$identifier);
+        });
     }
 }

@@ -8,6 +8,7 @@ use App\Http\Requests\DeleteAccountRequest;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateProfileRequest;
+use App\Http\Resources\ArtistResource;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\AccountService;
@@ -106,6 +107,38 @@ class AuthController extends Controller
         $accountService->delete($request->user());
 
         return ApiResponse::success(null, 'Conta excluída com sucesso.');
+    }
+
+    public function export()
+    {
+        $user = Auth::user()->load([
+            'roles',
+            'artistProfile.images',
+            'artistProfile.styles',
+            'artistProfile.tags',
+            'reviews',
+            'favorites',
+        ]);
+
+        return ApiResponse::success([
+            'user' => new UserResource($user),
+            'artist_profile' => $user->artistProfile ? new ArtistResource($user->artistProfile) : null,
+            'reviews' => $user->reviews->map(function ($review) {
+                return [
+                    'id' => $review->id,
+                    'artist_profile_id' => $review->artist_profile_id,
+                    'rating' => $review->rating,
+                    'comment' => $review->comment,
+                    'created_at' => $review->created_at,
+                ];
+            }),
+            'favorites' => $user->favorites->map(function ($artist) {
+                return [
+                    'artist_profile_id' => $artist->id,
+                    'favorited_at' => $artist->pivot->created_at,
+                ];
+            }),
+        ], 'Dados exportados com sucesso.');
     }
 
     public function cancelPendingEmail()

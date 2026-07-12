@@ -3,6 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\ArtistProfile;
+use App\Models\Review;
 use App\Models\User;
 use App\Notifications\PendingEmailChangeNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -285,6 +286,114 @@ class AuthControllerTest extends TestCase
         $response = $this->getJson(route('auth.me'));
 
         $response->assertStatus(401);
+    }
+
+    public function test_export_returns_authenticated_user_personal_data(): void
+    {
+        Role::findOrCreate('artist');
+
+        $user = User::factory()->create();
+        $user->assignRole('artist');
+        $artistProfile = ArtistProfile::factory()->for($user)->create([
+            'studio_name' => 'Ink House',
+        ]);
+        $reviewedArtist = ArtistProfile::factory()->create();
+        $favoriteArtist = ArtistProfile::factory()->create();
+        $review = Review::factory()->create([
+            'user_id' => $user->id,
+            'artist_profile_id' => $reviewedArtist->id,
+            'rating' => 5,
+            'comment' => 'Excelente trabalho.',
+        ]);
+        $user->favorites()->attach($favoriteArtist->id);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson(route('auth.export'));
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'Dados exportados com sucesso.')
+            ->assertJsonPath('data.user.id', $user->id)
+            ->assertJsonPath('data.artist_profile.id', $artistProfile->id)
+            ->assertJsonPath('data.artist_profile.studio_name', 'Ink House')
+            ->assertJsonPath('data.reviews.0.id', $review->id)
+            ->assertJsonPath('data.reviews.0.artist_profile_id', $reviewedArtist->id)
+            ->assertJsonPath('data.reviews.0.rating', 5)
+            ->assertJsonPath('data.reviews.0.comment', 'Excelente trabalho.')
+            ->assertJsonPath('data.favorites.0.artist_profile_id', $favoriteArtist->id)
+            ->assertJsonStructure([
+                'data' => [
+                    'user',
+                    'artist_profile',
+                    'reviews' => [
+                        '*' => ['id', 'artist_profile_id', 'rating', 'comment', 'created_at'],
+                    ],
+                    'favorites' => [
+                        '*' => ['artist_profile_id', 'favorited_at'],
+                    ],
+                ],
+            ]);
+    }
+
+    public function test_export_does_not_include_other_users_data(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $ownReviewedArtist = ArtistProfile::factory()->create();
+        $otherReviewedArtist = ArtistProfile::factory()->create();
+        $ownFavorite = ArtistProfile::factory()->create();
+        $otherFavorite = ArtistProfile::factory()->create();
+        $ownReview = Review::factory()->create([
+            'user_id' => $user->id,
+            'artist_profile_id' => $ownReviewedArtist->id,
+        ]);
+        $otherReview = Review::factory()->create([
+            'user_id' => $otherUser->id,
+            'artist_profile_id' => $otherReviewedArtist->id,
+        ]);
+        $user->favorites()->attach($ownFavorite->id);
+        $otherUser->favorites()->attach($otherFavorite->id);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson(route('auth.export'));
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data.reviews')
+            ->assertJsonCount(1, 'data.favorites')
+            ->assertJsonPath('data.reviews.0.id', $ownReview->id)
+            ->assertJsonPath('data.favorites.0.artist_profile_id', $ownFavorite->id);
+
+        $this->assertNotSame($otherReview->id, $response->json('data.reviews.0.id'));
+        $this->assertNotSame($otherFavorite->id, $response->json('data.favorites.0.artist_profile_id'));
+    }
+
+    public function test_export_requires_authentication(): void
+    {
+        $response = $this->getJson(route('auth.export'));
+
+        $response->assertStatus(401);
+    }
+
+    public function test_export_is_rate_limited(): void
+    {
+        $user = User::factory()->create([
+            'id' => random_int(10_000, 99_999),
+        ]);
+        $ipAddress = '203.0.113.'.random_int(1, 254);
+
+        Sanctum::actingAs($user);
+
+        for ($attempt = 1; $attempt <= 3; $attempt++) {
+            $this->withServerVariables(['REMOTE_ADDR' => $ipAddress])
+                ->getJson(route('auth.export'))
+                ->assertOk();
+        }
+
+        $this->withServerVariables(['REMOTE_ADDR' => $ipAddress])
+            ->getJson(route('auth.export'))
+            ->assertStatus(429)
+            ->assertJsonPath('message', 'Too many requests');
     }
 
     public function test_update_profile_sends_pending_email_change_notification(): void
