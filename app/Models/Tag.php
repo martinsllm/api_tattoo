@@ -15,6 +15,6 @@ class Tag extends Model
 
     public function artistProfiles()
     {
-        return $this->belongsToMany(ArtistProfile::class);
+        return $this->belongsToMany(ArtistProfile::class, 'artist_tag');
     }
 }
