@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Admin\ArtistAdminController;
+use App\Http\Controllers\Api\Admin\MetricsController;
 use App\Http\Controllers\Api\Admin\ReviewAdminController;
 use App\Http\Controllers\Api\ArtistController;
 use App\Http\Controllers\Api\ArtistImageController;
@@ -77,4 +78,5 @@ Route::middleware(['auth:sanctum', 'role:admin', 'throttle:30,1'])->prefix('admi
     Route::patch('/artists/{artist}/deactivate', [ArtistAdminController::class, 'deactivate'])->name('artist.deactivate');
     Route::patch('/artists/{artist}/activate', [ArtistAdminController::class, 'activate'])->name('artist.activate');
     Route::delete('/reviews/{review}', [ReviewAdminController::class, 'destroy'])->name('review.destroy');
+    Route::get('/metrics', MetricsController::class)->name('metrics');
 });
