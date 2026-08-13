@@ -59,6 +59,7 @@ class ArtistResource extends JsonResource
             'main_image' => $this->whenLoaded('mainImage', fn () => $this->mainImage ? new ArtistImageResource($this->mainImage) : null),
 
             'created_at' => $this->created_at,
+            'is_active' => $this->is_active,
         ];
     }
 }

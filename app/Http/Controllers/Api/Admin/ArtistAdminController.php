@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\FilterAdminArtistsRequest;
+use App\Http\Resources\ArtistResource;
 use App\Models\ArtistProfile;
 use App\Models\AuditLog;
 use App\Services\ArtistService;
@@ -11,6 +13,41 @@ use App\Services\ArtistService;
 class ArtistAdminController extends Controller
 {
     public function __construct(private ArtistService $artistService) {}
+
+    public function index(FilterAdminArtistsRequest $request)
+    {
+        $city = $request->input('city');
+        $state = $request->input('state');
+        $studioName = $request->input('q');
+
+        $query = ArtistProfile::with([
+            'user',
+            'styles',
+            'tags',
+        ]);
+
+        // Filtro por cidade
+        if ($request->filled('city')) {
+            $query->filterCity($city);
+        }
+
+        // Filtro por estado
+        if ($request->filled('state')) {
+            $query->filterState($state);
+        }
+
+        // Filtro por nome do estúdio
+        if ($request->filled('q')) {
+            $query->filterStudioName($studioName);
+        }
+
+        // Filtro por status
+        if ($request->has('is_active')) {
+            $query->where('is_active', $request->boolean('is_active'));
+        }
+
+        return ApiResponse::paginate(ArtistResource::collection($query->paginate($request->integer('per_page', 10))), 'Artists retrieved successfully');
+    }
 
     public function deactivate(ArtistProfile $artist)
     {
