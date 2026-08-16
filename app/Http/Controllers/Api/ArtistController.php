@@ -21,19 +21,14 @@ class ArtistController extends Controller
         $lng = $request->input('lng');
         $radius = $request->input('radius', 10);
 
-        $styles = $request->input('styles');
-        $tags = $request->input('tags');
-        $city = $request->input('city');
-        $state = $request->input('state');
-        $studioName = $request->input('q');
-
         $query = ArtistProfile::with([
             'user',
             'styles',
             'tags',
             'mainImage',
         ])
-            ->active();
+            ->active()
+            ->applyFilters($request->validated());
 
         // média de avaliação
         $query->withAvg('reviews', 'rating');
@@ -55,31 +50,6 @@ class ArtistController extends Controller
             'newest' => $query->orderByDesc('created_at'),
             default => $hasGeo ? $query->orderBy('distance') : $query->orderByRating(),
         };
-
-        // Filtro por styles
-        if ($request->filled('styles')) {
-            $query->filterStyles($styles);
-        }
-
-        // Filtro por tags
-        if ($request->filled('tags')) {
-            $query->filterTags($tags);
-        }
-
-        // Filtro por cidade
-        if ($request->filled('city')) {
-            $query->filterCity($city);
-        }
-
-        // Filtro por estado
-        if ($request->filled('state')) {
-            $query->filterState($state);
-        }
-
-        // Filtro por nome do estúdio
-        if ($request->filled('q')) {
-            $query->filterStudioName($studioName);
-        }
 
         return ApiResponse::paginate(ArtistResource::collection($query->paginate($request->integer('per_page', 10))), 'Artists retrieved successfully');
     }

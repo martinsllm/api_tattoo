@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\FilterArtistTrait;
 use Database\Factories\ArtistProfileFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,6 +10,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class ArtistProfile extends Model
 {
+    use FilterArtistTrait;
+
     /** @use HasFactory<ArtistProfileFactory> */
     use HasFactory;
 
