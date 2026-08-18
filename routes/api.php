@@ -3,6 +3,8 @@
 use App\Http\Controllers\Api\Admin\ArtistAdminController;
 use App\Http\Controllers\Api\Admin\MetricsController;
 use App\Http\Controllers\Api\Admin\ReviewAdminController;
+use App\Http\Controllers\Api\Admin\StyleAdminController;
+use App\Http\Controllers\Api\Admin\TagAdminController;
 use App\Http\Controllers\Api\ArtistController;
 use App\Http\Controllers\Api\ArtistImageController;
 use App\Http\Controllers\Api\AuthController;
@@ -78,6 +80,16 @@ Route::middleware(['auth:sanctum', 'role:admin', 'throttle:30,1'])->prefix('admi
     Route::get('/artists', [ArtistAdminController::class, 'index'])->name('artist.index');
     Route::patch('/artists/{artist}/deactivate', [ArtistAdminController::class, 'deactivate'])->name('artist.deactivate');
     Route::patch('/artists/{artist}/activate', [ArtistAdminController::class, 'activate'])->name('artist.activate');
+
     Route::delete('/reviews/{review}', [ReviewAdminController::class, 'destroy'])->name('review.destroy');
+
+    Route::post('/styles', [StyleAdminController::class, 'store'])->name('style.store');
+    Route::patch('/styles/{style}', [StyleAdminController::class, 'update'])->name('style.update');
+    Route::delete('/styles/{style}', [StyleAdminController::class, 'destroy'])->name('style.destroy');
+
+    Route::post('/tags', [TagAdminController::class, 'store'])->name('tag.store');
+    Route::patch('/tags/{tag}', [TagAdminController::class, 'update'])->name('tag.update');
+    Route::delete('/tags/{tag}', [TagAdminController::class, 'destroy'])->name('tag.destroy');
+
     Route::get('/metrics', MetricsController::class)->name('metrics');
 });
