@@ -63,6 +63,13 @@ class DataPruneCommandTest extends TestCase
         $this->assertModelExists($expiredAuditLog);
     }
 
+    public function test_data_prune_is_registered_in_schedule(): void
+    {
+        $this->artisan('schedule:list')
+            ->expectsOutputToContain('data:prune')
+            ->assertSuccessful();
+    }
+
     private function createAuditLog(\DateTimeInterface $createdAt): AuditLog
     {
         $user = User::factory()->create();
