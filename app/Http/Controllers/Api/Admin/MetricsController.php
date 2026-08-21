@@ -16,10 +16,17 @@ class MetricsController extends Controller
      */
     public function __invoke(): JsonResponse
     {
+        $startOfMonth = now()->startOfMonth();
+        $endOfMonth = now()->endOfMonth();
+
         return ApiResponse::success([
             'total_artists' => ArtistProfile::count(),
             'total_reviews' => Review::count(),
             'total_favorites' => DB::table('favorites')->count(),
+            'active_artists' => ArtistProfile::where('is_active', true)->count(),
+            'inactive_artists' => ArtistProfile::where('is_active', false)->count(),
+            'reviews_this_month' => Review::whereBetween('created_at', [$startOfMonth, $endOfMonth])->count(),
+            'favorites_this_month' => DB::table('favorites')->whereBetween('created_at', [$startOfMonth, $endOfMonth])->count(),
         ], 'Metrics retrieved successfully');
     }
 }
