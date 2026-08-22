@@ -10,6 +10,7 @@ use App\Http\Requests\UpdateArtistRequest;
 use App\Http\Resources\ArtistResource;
 use App\Models\ArtistProfile;
 use App\Services\ArtistService;
+use Illuminate\Http\Request;
 
 class ArtistController extends Controller
 {
@@ -35,6 +36,14 @@ class ArtistController extends Controller
         $query->withCount('reviews');
         $query->withCount(['favoritedBy as favorites_count']);
 
+        $userId = $request->user('sanctum')?->id;
+
+        if ($userId) {
+            $query->withExists([
+                'favoritedBy as is_favorited' => fn ($query) => $query->where('favorites.user_id', $userId),
+            ]);
+        }
+
         $hasGeo = ! is_null($lat) && ! is_null($lng);
         $sort = $request->input('sort');
 
@@ -54,9 +63,9 @@ class ArtistController extends Controller
         return ApiResponse::paginate(ArtistResource::collection($query->paginate($request->integer('per_page', 10))), 'Artists retrieved successfully');
     }
 
-    public function show(int $id)
+    public function show(Request $request, int $id)
     {
-        $artist = ArtistProfile::with([
+        $query = ArtistProfile::with([
             'user',
             'styles',
             'tags',
@@ -64,8 +73,16 @@ class ArtistController extends Controller
         ])
             ->active()
             ->withCount(['favoritedBy as favorites_count'])
-            ->withAvg('reviews', 'rating')
-            ->findOrFail($id);
+            ->withAvg('reviews', 'rating');
+
+        $userId = $request->user('sanctum')?->id;
+        if ($userId) {
+            $query->withExists([
+                'favoritedBy as is_favorited' => fn ($query) => $query->where('favorites.user_id', $userId),
+            ]);
+        }
+
+        $artist = $query->findOrFail($id);
 
         return ApiResponse::success(new ArtistResource($artist), 'Artist retrieved successfully');
     }

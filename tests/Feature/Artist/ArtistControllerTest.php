@@ -795,6 +795,34 @@ class ArtistControllerTest extends TestCase
             ->assertJsonMissingPath('data.0.favorites_count');
     }
 
+    public function test_index_shows_is_favorited_true_when_user_favorited_artist(): void
+    {
+        $artist = ArtistProfile::factory()->create();
+        $user = User::factory()->create();
+        $artist->favoritedBy()->attach($user->id);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson(route('artist.index'));
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.is_favorited', true);
+    }
+
+    public function test_index_shows_is_favorited_false_when_user_did_not_favorite_artist(): void
+    {
+        $artist = ArtistProfile::factory()->create();
+        $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson(route('artist.index'));
+
+        $response->assertOk()
+            ->assertJsonPath('data.0.is_favorited', false);
+
+    }
+
     public function test_show_includes_favorites_count(): void
     {
         $artist = ArtistProfile::factory()->create();
@@ -862,5 +890,32 @@ class ArtistControllerTest extends TestCase
         $response->assertOk()
             ->assertJsonCount(3, 'data.images')
             ->assertJsonMissingPath('data.main_image');
+    }
+
+    public function test_show_shows_is_favorited_true_when_user_favorited_artist(): void
+    {
+        $artist = ArtistProfile::factory()->create();
+        $user = User::factory()->create();
+        $artist->favoritedBy()->attach($user->id);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson(route('artist.show', $artist->id));
+
+        $response->assertOk()
+            ->assertJsonPath('data.is_favorited', true);
+    }
+
+    public function test_show_shows_is_favorited_false_when_user_did_not_favorite_artist(): void
+    {
+        $artist = ArtistProfile::factory()->create();
+        $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson(route('artist.show', $artist->id));
+
+        $response->assertOk()
+            ->assertJsonPath('data.is_favorited', false);
     }
 }

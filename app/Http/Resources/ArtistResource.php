@@ -47,6 +47,8 @@ class ArtistResource extends JsonResource
 
             'favorites_count' => $this->when(isset($this->favorites_count) && $this->favorites_count > 0, fn () => $this->favorites_count),
 
+            'is_favorited' => $this->when($isAuthenticated && ! $isAuthor, fn () => (bool) $this->is_favorited),
+
             'user' => $this->whenLoaded('user', fn () => [
                 'id' => $this->user?->id,
                 'name' => $this->user?->name,
