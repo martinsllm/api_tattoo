@@ -33,6 +33,7 @@ class FilterArtistsRequest extends FormRequest
             'q' => ['nullable', 'string', 'max:255'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
             'sort' => ['nullable', 'string', 'in:rating,distance,newest'],
+            'min_rating' => ['nullable', 'numeric', 'min:1', 'max:5'],
         ];
     }
 

@@ -645,6 +645,30 @@ class ArtistControllerTest extends TestCase
         $response->assertStatus(422);
     }
 
+    public function test_index_filters_by_min_rating(): void
+    {
+        $artist = ArtistProfile::factory()->create(['studio_name' => 'Top Rated']);
+        Review::factory()->create(['artist_profile_id' => $artist->id, 'rating' => 5]);
+
+        $artist2 = ArtistProfile::factory()->create(['studio_name' => 'Low Rated']);
+        Review::factory()->create(['artist_profile_id' => $artist2->id, 'rating' => 3]);
+
+        $response = $this->getJson(route('artist.index', ['min_rating' => 4]));
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $artist->id)
+            ->assertJsonPath('data.0.studio_name', 'Top Rated');
+    }
+
+    public function test_index_validation_errors_when_min_rating_is_invalid(): void
+    {
+        $response = $this->getJson(route('artist.index', ['min_rating' => 6]));
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors('min_rating');
+    }
+
     public function test_index_rejects_invalid_sort(): void
     {
         $response = $this->getJson(route('artist.index', ['sort' => 'name']));

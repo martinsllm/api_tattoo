@@ -29,10 +29,10 @@ class ArtistController extends Controller
             'mainImage',
         ])
             ->active()
+            ->withAvg('reviews', 'rating')
             ->applyFilters($request->validated());
 
         // média de avaliação
-        $query->withAvg('reviews', 'rating');
         $query->withCount('reviews');
         $query->withCount(['favoritedBy as favorites_count']);
 
