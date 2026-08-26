@@ -122,9 +122,12 @@ class ArtistProfile extends Model
         return $query->where('state', $state);
     }
 
-    public function scopeFilterStudioName(Builder $query, string $studioName)
+    public function scopeFilterSearch(Builder $query, string $term)
     {
-        return $query->where('studio_name', 'like', '%'.$studioName.'%');
+        return $query->where(function (Builder $query) use ($term) {
+            $query->where('studio_name', 'like', '%'.$term.'%')
+                ->orWhereHas('user', fn (Builder $query) => $query->where('name', 'like', '%'.$term.'%'));
+        });
     }
 
     public function scopeOrderByRating(Builder $query)

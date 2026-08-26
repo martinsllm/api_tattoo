@@ -438,7 +438,33 @@ class ArtistControllerTest extends TestCase
             ->assertJsonMissing(['studio_name' => 'Aquarela Studio']);
     }
 
-    public function test_index_filters_combined_city_and_studio_name(): void
+    public function test_index_filters_by_artist_name(): void
+    {
+        $user = User::factory()->create(['name' => 'João Silva']);
+        $artist = ArtistProfile::factory()->for($user)->create(['studio_name' => 'Ink House']);
+        ArtistProfile::factory()->create(['studio_name' => 'Outro Estúdio']);
+
+        $response = $this->getJson(route('artist.index', ['q' => 'João']));
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $artist->id)
+            ->assertJsonPath('data.0.studio_name', 'Ink House');
+    }
+
+    public function test_index_search_excludes_artists_without_match(): void
+    {
+        $user = User::factory()->create(['name' => 'João Silva']);
+        ArtistProfile::factory()->for($user)->create(['studio_name' => 'Ink House']);
+        ArtistProfile::factory()->create(['studio_name' => 'Blackwork SP']);
+
+        $response = $this->getJson(route('artist.index', ['q' => 'Maria']));
+
+        $response->assertOk()
+            ->assertJsonCount(0, 'data');
+    }
+
+    public function test_index_filters_combined_city_and_search_query(): void
     {
         $target = ArtistProfile::factory()->create(['studio_name' => 'Old School SP', 'city' => 'São Paulo']);
         ArtistProfile::factory()->create(['studio_name' => 'Old School RJ', 'city' => 'Rio de Janeiro']);

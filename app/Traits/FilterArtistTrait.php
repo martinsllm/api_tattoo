@@ -25,7 +25,7 @@ trait FilterArtistTrait
             )
             ->when(
                 ! empty($filters['q']),
-                fn ($query) => $query->filterStudioName($filters['q'])
+                fn ($query) => $query->filterSearch($filters['q'])
             )
             ->when(
                 array_key_exists('is_active', $filters),
