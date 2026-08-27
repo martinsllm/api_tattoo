@@ -212,6 +212,83 @@ class ArtistControllerTest extends TestCase
         $this->assertFalse($user->hasRole('client'));
     }
 
+    public function test_store_persists_starting_price(): void
+    {
+        $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson(route('artist.store'), [
+            'studio_name' => 'Tinta Preta Studio',
+            'starting_price' => 15000,
+            'city' => 'Curitiba',
+            'state' => 'PR',
+            'latitude' => -25.4284,
+            'longitude' => -49.2733,
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.starting_price', 15000);
+
+        $this->assertDatabaseHas('artist_profiles', [
+            'user_id' => $user->id,
+            'starting_price' => 15000,
+        ]);
+    }
+
+    public function test_starting_price_is_omitted_from_resource_when_not_set(): void
+    {
+        $artist = ArtistProfile::factory()->create([
+            'starting_price' => null,
+        ]);
+
+        $response = $this->getJson(route('artist.show', $artist->id));
+
+        $response->assertOk()
+            ->assertJsonMissingPath('data.starting_price');
+    }
+
+    public function test_update_allows_owner_to_clear_starting_price(): void
+    {
+        $owner = User::factory()->create();
+        $artist = ArtistProfile::factory()->for($owner)->create([
+            'starting_price' => 15000,
+        ]);
+
+        Sanctum::actingAs($owner);
+
+        $response = $this->patchJson(route('artist.update', $artist->id), [
+            'starting_price' => null,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonMissingPath('data.starting_price');
+
+        $this->assertDatabaseHas('artist_profiles', [
+            'id' => $artist->id,
+            'starting_price' => null,
+        ]);
+    }
+
+    public function test_store_rejects_invalid_starting_price(): void
+    {
+        $user = User::factory()->create();
+
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson(route('artist.store'), [
+            'studio_name' => 'Tinta Preta Studio',
+            'starting_price' => -100,
+            'city' => 'Curitiba',
+            'state' => 'PR',
+            'latitude' => -25.4284,
+            'longitude' => -49.2733,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors('starting_price');
+    }
+
     public function test_update_allows_owner_to_change_their_profile(): void
     {
         $owner = User::factory()->create();

@@ -26,6 +26,7 @@ class UpdateArtistRequest extends FormRequest
     {
         return [
             'studio_name' => ['sometimes', 'string', 'max:255'],
+            'starting_price' => ['sometimes', 'nullable', 'integer', 'min:0'],
             'bio' => ['nullable', 'string'],
             'phone' => ['nullable', 'string', 'max:20'],
             'instagram' => ['nullable', 'string', 'max:255'],

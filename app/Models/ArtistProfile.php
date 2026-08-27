@@ -18,6 +18,7 @@ class ArtistProfile extends Model
     protected $fillable = [
         'user_id',
         'studio_name',
+        'starting_price',
         'bio',
         'phone',
         'instagram',

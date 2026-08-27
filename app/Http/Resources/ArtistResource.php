@@ -27,6 +27,7 @@ class ArtistResource extends JsonResource
         return [
             'id' => $this->id,
             'studio_name' => $this->studio_name,
+            'starting_price' => $this->when($this->starting_price !== null, fn () => $this->starting_price),
             'bio' => $this->bio,
             'city' => $this->city,
             'state' => $this->state,
