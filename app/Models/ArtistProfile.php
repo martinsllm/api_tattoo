@@ -131,6 +131,14 @@ class ArtistProfile extends Model
         });
     }
 
+    public function scopeFilterMinRating(Builder $query, int $minRating)
+    {
+        return $query->whereRaw(
+            '(SELECT AVG(rating) FROM reviews WHERE artist_profile_id = artist_profiles.id AND deleted_at IS NULL) >= ?',
+            [(int) $minRating]
+        );
+    }
+
     public function scopeOrderByRating(Builder $query)
     {
         return $query->orderByRaw('COALESCE(reviews_avg_rating, 0) DESC')

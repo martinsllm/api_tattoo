@@ -33,10 +33,7 @@ trait FilterArtistTrait
             )
             ->when(
                 isset($filters['min_rating']),
-                fn ($query) => $query->whereRaw(
-                    '(SELECT AVG(rating) FROM reviews WHERE artist_profile_id = artist_profiles.id AND deleted_at IS NULL) >= ?',
-                    [(int) $filters['min_rating']]
-                )
+                fn ($query) => $query->filterMinRating((int) $filters['min_rating'])
             );
     }
 }
