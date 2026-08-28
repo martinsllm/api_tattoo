@@ -34,6 +34,13 @@ trait FilterArtistTrait
             ->when(
                 isset($filters['min_rating']),
                 fn ($query) => $query->filterMinRating((int) $filters['min_rating'])
+            )
+            ->when(
+                isset($filters['min_price']) || isset($filters['max_price']),
+                fn ($query) => $query->filterPrice(
+                    isset($filters['min_price']) ? (int) $filters['min_price'] : null,
+                    isset($filters['max_price']) ? (int) $filters['max_price'] : null
+                )
             );
     }
 }

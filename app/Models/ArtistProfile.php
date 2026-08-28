@@ -139,6 +139,17 @@ class ArtistProfile extends Model
         );
     }
 
+    public function scopeFilterPrice(Builder $query, ?int $minPrice = null, ?int $maxPrice = null)
+    {
+        if ($minPrice === null && $maxPrice === null) {
+            return $query;
+        }
+
+        return $query->whereNotNull('starting_price')
+            ->when($minPrice !== null, fn ($q) => $q->where('starting_price', '>=', $minPrice))
+            ->when($maxPrice !== null, fn ($q) => $q->where('starting_price', '<=', $maxPrice));
+    }
+
     public function scopeOrderByRating(Builder $query)
     {
         return $query->orderByRaw('COALESCE(reviews_avg_rating, 0) DESC')

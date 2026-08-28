@@ -34,6 +34,8 @@ class FilterArtistsRequest extends FormRequest
             'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
             'sort' => ['nullable', 'string', 'in:rating,distance,newest'],
             'min_rating' => ['nullable', 'numeric', 'min:1', 'max:5'],
+            'min_price' => ['nullable', 'numeric', 'min:0'],
+            'max_price' => ['nullable', 'numeric', 'min:0'],
         ];
     }
 
@@ -49,6 +51,12 @@ class FilterArtistsRequest extends FormRequest
 
             if ($hasLat !== $hasLng) {
                 $validator->errors()->add('lat', 'Os parâmetros lat e lng devem ser enviados juntos.');
+            }
+
+            if ($this->has('min_price') && $this->has('max_price')) {
+                if ((int) $this->input('min_price') > (int) $this->input('max_price')) {
+                    $validator->errors()->add('min_price', 'O preço mínimo não pode ser maior que o preço máximo.');
+                }
             }
         });
     }

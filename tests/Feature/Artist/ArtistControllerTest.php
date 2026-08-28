@@ -772,6 +772,72 @@ class ArtistControllerTest extends TestCase
             ->assertJsonValidationErrors('min_rating');
     }
 
+    public function test_index_filters_by_min_and_max_price(): void
+    {
+        ArtistProfile::factory()->create(['studio_name' => 'Barato', 'starting_price' => 10000]);
+        $mid = ArtistProfile::factory()->create(['studio_name' => 'Médio', 'starting_price' => 20000]);
+        ArtistProfile::factory()->create(['studio_name' => 'Caro', 'starting_price' => 30000]);
+
+        $response = $this->getJson(route('artist.index', [
+            'min_price' => 15000,
+            'max_price' => 25000,
+        ]));
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $mid->id)
+            ->assertJsonPath('data.0.starting_price', 20000);
+    }
+
+    public function test_index_includes_artists_without_price_when_no_price_filter(): void
+    {
+        $withoutPrice = ArtistProfile::factory()->create([
+            'studio_name' => 'Sob consulta',
+            'starting_price' => null,
+        ]);
+        $withPrice = ArtistProfile::factory()->create([
+            'studio_name' => 'Com preço',
+            'starting_price' => 15000,
+        ]);
+
+        $response = $this->getJson(route('artist.index'));
+
+        $response->assertOk()
+            ->assertJsonCount(2, 'data');
+
+        $ids = collect($response->json('data'))->pluck('id')->all();
+        $this->assertEqualsCanonicalizing([$withoutPrice->id, $withPrice->id], $ids);
+    }
+
+    public function test_index_excludes_artists_without_price_when_price_filter_is_active(): void
+    {
+        ArtistProfile::factory()->create([
+            'studio_name' => 'Sob consulta',
+            'starting_price' => null,
+        ]);
+        $priced = ArtistProfile::factory()->create([
+            'studio_name' => 'Com preço',
+            'starting_price' => 15000,
+        ]);
+
+        $response = $this->getJson(route('artist.index', ['min_price' => 10000]));
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $priced->id);
+    }
+
+    public function test_index_validation_errors_when_min_price_exceeds_max_price(): void
+    {
+        $response = $this->getJson(route('artist.index', [
+            'min_price' => 50000,
+            'max_price' => 10000,
+        ]));
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors('min_price');
+    }
+
     public function test_index_rejects_invalid_sort(): void
     {
         $response = $this->getJson(route('artist.index', ['sort' => 'name']));
