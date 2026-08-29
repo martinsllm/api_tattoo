@@ -764,6 +764,21 @@ class ArtistControllerTest extends TestCase
             ->assertJsonPath('data.0.studio_name', 'Top Rated');
     }
 
+    public function test_index_sorts_by_price(): void
+    {
+        $cheap = ArtistProfile::factory()->create(['studio_name' => 'Barato', 'starting_price' => 10000]);
+        $expensive = ArtistProfile::factory()->create(['studio_name' => 'Caro', 'starting_price' => 20000]);
+        $noPrice = ArtistProfile::factory()->create(['studio_name' => 'Sob consulta', 'starting_price' => null]);
+
+        $response = $this->getJson(route('artist.index', ['sort' => 'price']));
+
+        $response->assertOk()
+            ->assertJsonCount(3, 'data')
+            ->assertJsonPath('data.0.id', $cheap->id)
+            ->assertJsonPath('data.1.id', $expensive->id)
+            ->assertJsonPath('data.2.id', $noPrice->id);
+    }
+
     public function test_index_validation_errors_when_min_rating_is_invalid(): void
     {
         $response = $this->getJson(route('artist.index', ['min_rating' => 6]));

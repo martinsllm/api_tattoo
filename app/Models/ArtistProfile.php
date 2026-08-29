@@ -155,4 +155,10 @@ class ArtistProfile extends Model
         return $query->orderByRaw('COALESCE(reviews_avg_rating, 0) DESC')
             ->orderByDesc('reviews_count');
     }
+
+    public function scopeOrderByPrice(Builder $query)
+    {
+        return $query->orderByRaw('starting_price IS NULL')
+            ->orderBy('starting_price');
+    }
 }

@@ -57,6 +57,7 @@ class ArtistController extends Controller
             'rating' => $query->orderByRating(),
             'distance' => $query->orderBy('distance'),
             'newest' => $query->orderByDesc('created_at'),
+            'price' => $query->orderByPrice(),
             default => $hasGeo ? $query->orderBy('distance') : $query->orderByRating(),
         };
 

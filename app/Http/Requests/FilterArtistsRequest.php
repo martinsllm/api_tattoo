@@ -32,7 +32,7 @@ class FilterArtistsRequest extends FormRequest
             'state' => ['nullable', 'string', Rule::in(BrazilianState::values())],
             'q' => ['nullable', 'string', 'max:255'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
-            'sort' => ['nullable', 'string', 'in:rating,distance,newest'],
+            'sort' => ['nullable', 'string', 'in:rating,distance,newest,price'],
             'min_rating' => ['nullable', 'numeric', 'min:1', 'max:5'],
             'min_price' => ['nullable', 'numeric', 'min:0'],
             'max_price' => ['nullable', 'numeric', 'min:0'],
