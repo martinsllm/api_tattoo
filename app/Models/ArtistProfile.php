@@ -147,7 +147,8 @@ class ArtistProfile extends Model
 
         return $query->whereNotNull('starting_price')
             ->when($minPrice !== null, fn ($q) => $q->where('starting_price', '>=', $minPrice))
-            ->when($maxPrice !== null, fn ($q) => $q->where('starting_price', '<=', $maxPrice));
+            ->when($maxPrice !== null, fn ($q) => $q->where('starting_price', '<=', $maxPrice))
+            ->orderBy('starting_price');
     }
 
     public function scopeOrderByRating(Builder $query)
