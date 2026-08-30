@@ -66,6 +66,7 @@ Route::middleware(['auth:sanctum', 'throttle:30,1'])->group(function () {
     Route::post('/artists/{artist}/images', [ArtistImageController::class, 'store'])->name('artist.image.store');
     Route::delete('/images/{image}', [ArtistImageController::class, 'destroy'])->name('artist.image.destroy');
     Route::patch('/images/{image}/main', [ArtistImageController::class, 'setMain'])->name('artist.image.set-main');
+    Route::patch('/artists/{artist}/images/reorder', [ArtistImageController::class, 'reorder'])->name('artist.image.reorder');
 
     Route::post('/reviews', [ReviewController::class, 'store'])->name('review.store');
     Route::get('/artists/{id}/reviews', [ReviewController::class, 'index'])->name('artist.review.index');

@@ -395,4 +395,70 @@ class ArtistImageControllerTest extends TestCase
             'is_main' => false,
         ]);
     }
+
+    public function test_reorder_updates_positions_and_show_reflects_order(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $artist = ArtistProfile::factory()->for($user)->create();
+
+        $images = ArtistImage::factory()->for($artist, 'artist')->count(3)->sequence(
+            fn ($sequence) => ['position' => $sequence->index],
+        )->create();
+
+        $response = $this->patchJson(route('artist.image.reorder', $artist->id), [
+            'images_ids' => $images->pluck('id')->reverse()->values()->toArray(),
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'Images reordered successfully');
+
+        $this->assertDatabaseHas('artist_images', [
+            'id' => $images->last()->id,
+            'position' => 0,
+        ]);
+
+        $this->assertDatabaseHas('artist_images', [
+            'id' => $images->get(1)->id,
+            'position' => 1,
+        ]);
+
+        $this->assertDatabaseHas('artist_images', [
+            'id' => $images->first()->id,
+            'position' => 2,
+        ]);
+    }
+
+    public function test_reorder_rejects_when_user_is_not_the_artist(): void
+    {
+        Storage::fake('public');
+
+        $owner = User::factory()->create();
+        $intruder = User::factory()->create();
+
+        $artist = ArtistProfile::factory()->for($owner)->create();
+
+        $images = ArtistImage::factory()->for($artist, 'artist')->count(3)->sequence(
+            fn ($sequence) => ['position' => $sequence->index],
+        )->create();
+
+        Sanctum::actingAs($intruder);
+
+        $response = $this->patchJson(route('artist.image.reorder', $artist->id), [
+            'images_ids' => $images->pluck('id')->reverse()->toArray(),
+        ]);
+
+        $response->assertStatus(403)
+            ->assertJsonPath('message', 'Forbidden');
+
+        foreach ($images as $index => $image) {
+            $this->assertDatabaseHas('artist_images', [
+                'id' => $image->id,
+                'position' => $index,
+            ]);
+        }
+    }
 }

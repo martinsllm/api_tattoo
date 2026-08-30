@@ -56,6 +56,15 @@ class ArtistImageService
         });
     }
 
+    public function reorder(ArtistProfile $artist, array $imagesIds): void
+    {
+        DB::transaction(function () use ($artist, $imagesIds) {
+            foreach ($imagesIds as $position => $imageId) {
+                $artist->images()->whereKey($imageId)->update(['position' => $position]);
+            }
+        });
+    }
+
     public function delete(ArtistImage $image): bool
     {
         if ($image->is_main) {

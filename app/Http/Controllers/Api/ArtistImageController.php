@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ReorderImagesRequest;
 use App\Http\Requests\StoreImageRequest;
 use App\Http\Resources\ArtistImageResource;
 use App\Models\ArtistImage;
@@ -30,7 +31,15 @@ class ArtistImageController extends Controller
         $image = $this->artistImageService->setMain($image);
 
         return ApiResponse::success(new ArtistImageResource($image), 'Main image set successfully');
+    }
 
+    public function reorder(ReorderImagesRequest $request, ArtistProfile $artist)
+    {
+        $this->authorize('update', $artist);
+
+        $this->artistImageService->reorder($artist, $request->validated('images_ids'));
+
+        return ApiResponse::success(null, 'Images reordered successfully');
     }
 
     public function destroy(ArtistImage $image)
