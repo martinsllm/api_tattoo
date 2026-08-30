@@ -15,6 +15,7 @@ class ArtistImage extends Model
         'thumbnail_url',
         'description',
         'is_main',
+        'position',
     ];
 
     protected $casts = [

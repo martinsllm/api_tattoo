@@ -21,6 +21,7 @@ class ArtistImageService
         try {
             return DB::transaction(function () use ($artist, $files, &$storedPaths) {
                 $images = [];
+                $nextPosition = ($artist->images()->max('position') ?? -1) + 1;
 
                 foreach ($files as $file) {
                     $image_url = $file->store('artists', 'public');
@@ -29,6 +30,7 @@ class ArtistImageService
                     $images[] = ArtistImage::create([
                         'artist_profile_id' => $artist->id,
                         'image_url' => $image_url,
+                        'position' => $nextPosition++,
                     ]);
                 }
 
