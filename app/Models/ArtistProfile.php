@@ -43,7 +43,7 @@ class ArtistProfile extends Model
 
     public function images()
     {
-        return $this->hasMany(ArtistImage::class);
+        return $this->hasMany(ArtistImage::class)->orderBy('position');
     }
 
     public function mainImage()
