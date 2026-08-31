@@ -382,4 +382,66 @@ class ReviewControllerTest extends TestCase
         // Check that the artist's average_rating is preserved
         $this->assertEquals($expectedAverageRating, $averageRating);
     }
+
+    public function test_update_updates_review_when_called_by_author(): void
+    {
+        $author = User::factory()->create();
+        $review = Review::factory()->create(['user_id' => $author->id]);
+
+        Sanctum::actingAs($author);
+
+        $response = $this->patchJson(route('review.update', $review->id), ['rating' => 4, 'comment' => 'New comment']);
+
+        $response->assertOk()
+            ->assertJson(['message' => 'Review updated successfully']);
+
+        $this->assertDatabaseHas('reviews', ['id' => $review->id, 'rating' => 4, 'comment' => 'New comment']);
+    }
+
+    public function test_update_forbids_admin_to_update_review(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $review = Review::factory()->create();
+
+        Sanctum::actingAs($admin);
+
+        $response = $this->patchJson(route('review.update', $review->id), ['rating' => 4, 'comment' => 'New comment']);
+
+        $response->assertStatus(403)
+            ->assertJson(['message' => 'Forbidden']);
+
+        $this->assertDatabaseMissing('reviews', ['id' => $review->id, 'rating' => 4, 'comment' => 'New comment']);
+    }
+
+    public function test_update_forbids_user_to_update_review_after_edit_window_has_passed(): void
+    {
+        $user = User::factory()->create();
+        $review = Review::factory()->create(['user_id' => $user->id, 'created_at' => now()->subHours(config('app.review_edit_window_hours') + 1)]);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->patchJson(route('review.update', $review->id), ['rating' => 4, 'comment' => 'New comment']);
+
+        $response->assertStatus(403)
+            ->assertJson(['message' => 'Forbidden']);
+
+        $this->assertDatabaseMissing('reviews', ['id' => $review->id, 'rating' => 4, 'comment' => 'New comment']);
+    }
+
+    public function test_update_forbids_user_to_update_review_if_it_has_been_deleted(): void
+    {
+        $user = User::factory()->create();
+        $review = Review::factory()->create(['user_id' => $user->id]);
+        $review->delete();
+
+        Sanctum::actingAs($user);
+
+        $response = $this->patchJson(route('review.update', $review->id), ['rating' => 4, 'comment' => 'New comment']);
+
+        $response->assertStatus(404)
+            ->assertJson(['message' => 'Resource not found']);
+
+        $this->assertDatabaseMissing('reviews', ['id' => $review->id, 'rating' => 4, 'comment' => 'New comment']);
+    }
 }
