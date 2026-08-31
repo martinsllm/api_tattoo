@@ -70,6 +70,7 @@ Route::middleware(['auth:sanctum', 'throttle:30,1'])->group(function () {
 
     Route::post('/reviews', [ReviewController::class, 'store'])->name('review.store');
     Route::get('/artists/{id}/reviews', [ReviewController::class, 'index'])->name('artist.review.index');
+    Route::patch('/reviews/{review}', [ReviewController::class, 'update'])->name('review.update');
     Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('review.destroy');
 
     Route::post('/artists/{id}/favorite', [FavoriteController::class, 'toggle'])->name('artist.favorite.toggle');

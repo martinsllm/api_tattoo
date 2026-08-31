@@ -123,4 +123,6 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'review_edit_window_hours' => (int) env('REVIEW_EDIT_WINDOW_HOURS', 24),
+
 ];

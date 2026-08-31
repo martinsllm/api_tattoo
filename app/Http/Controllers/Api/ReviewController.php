@@ -6,6 +6,7 @@ use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PaginatedRequest;
 use App\Http\Requests\StoreReviewRequest;
+use App\Http\Requests\UpdateReviewRequest;
 use App\Http\Resources\ReviewResource;
 use App\Models\ArtistProfile;
 use App\Models\Review;
@@ -37,6 +38,15 @@ class ReviewController extends Controller
         $review = $this->reviewService->create($request->validated());
 
         return ApiResponse::success(new ReviewResource($review), 'Review created successfully', 201);
+    }
+
+    public function update(UpdateReviewRequest $request, Review $review)
+    {
+        $this->authorize('update', $review);
+
+        $review->update($request->validated());
+
+        return ApiResponse::success(new ReviewResource($review), 'Review updated successfully');
     }
 
     public function destroy(Review $review)

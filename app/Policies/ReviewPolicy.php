@@ -15,4 +15,14 @@ class ReviewPolicy
 
         return $user->id === $review->user_id;
     }
+
+    public function update(User $user, Review $review): bool
+    {
+        if ($user->hasRole('admin')) {
+            return false;
+        }
+
+        return $user->id === $review->user_id && ! $review->trashed() && $review->created_at->greaterThan(now()->subHours(config('app.review_edit_window_hours')));
+
+    }
 }
