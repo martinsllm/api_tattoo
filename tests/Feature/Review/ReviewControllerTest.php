@@ -444,4 +444,83 @@ class ReviewControllerTest extends TestCase
 
         $this->assertDatabaseMissing('reviews', ['id' => $review->id, 'rating' => 4, 'comment' => 'New comment']);
     }
+
+    public function test_reply_creates_reply_when_called_by_owner_of_the_artist_profile(): void
+    {
+        $owner = User::factory()->create();
+        $artist = ArtistProfile::factory()->create(['user_id' => $owner->id]);
+        $review = Review::factory()->create(['artist_profile_id' => $artist->id]);
+
+        Sanctum::actingAs($owner);
+
+        $response = $this->patchJson(route('review.reply', $review->id), ['reply' => 'New reply']);
+
+        $response->assertOk()
+            ->assertJson(['message' => 'Review replied successfully']);
+
+        $this->assertDatabaseHas('reviews', ['id' => $review->id, 'reply' => 'New reply']);
+    }
+
+    public function test_reply_forbids_admin_to_reply_to_review(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $review = Review::factory()->create();
+
+        Sanctum::actingAs($admin);
+
+        $response = $this->patchJson(route('review.reply', $review->id), ['reply' => 'New reply']);
+
+        $response->assertStatus(403)
+            ->assertJson(['message' => 'Forbidden']);
+
+        $this->assertDatabaseMissing('reviews', ['id' => $review->id, 'reply' => 'New reply']);
+    }
+
+    public function test_reply_forbids_when_non_owner_tries_to_reply_to_review(): void
+    {
+        $artist = ArtistProfile::factory()->create();
+        $otherUser = User::factory()->create();
+        $review = Review::factory()->create(['artist_profile_id' => $artist->id]);
+
+        Sanctum::actingAs($otherUser);
+
+        $response = $this->patchJson(route('review.reply', $review->id), ['reply' => 'New reply']);
+
+        $response->assertStatus(403)
+            ->assertJson(['message' => 'Forbidden']);
+
+        $this->assertDatabaseMissing('reviews', ['id' => $review->id, 'reply' => 'New reply']);
+    }
+
+    public function test_reply_forbids_when_review_has_been_deleted(): void
+    {
+        $author = User::factory()->create();
+        $review = Review::factory()->create(['user_id' => $author->id]);
+        $review->delete();
+
+        Sanctum::actingAs($author);
+
+        $response = $this->patchJson(route('review.reply', $review->id), ['reply' => 'New reply']);
+
+        $response->assertStatus(404)
+            ->assertJson(['message' => 'Resource not found']);
+
+        $this->assertDatabaseMissing('reviews', ['id' => $review->id, 'reply' => 'New reply']);
+    }
+
+    public function test_index_returns_reviews_with_replies(): void
+    {
+        $artist = ArtistProfile::factory()->create();
+        $review = Review::factory()->create(['artist_profile_id' => $artist->id]);
+        $review->update(['reply' => 'New reply', 'replied_at' => now()]);
+
+        Sanctum::actingAs(User::factory()->create());
+
+        $response = $this->getJson(route('artist.review.index', $artist->id));
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.reply', 'New reply');
+    }
 }

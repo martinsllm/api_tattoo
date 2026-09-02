@@ -15,11 +15,17 @@ class Review extends Model
         'user_id',
         'rating',
         'comment',
+        'reply',
+        'replied_at',
+    ];
+
+    protected $casts = [
+        'replied_at' => 'datetime',
     ];
 
     public function artist()
     {
-        return $this->belongsTo(ArtistProfile::class);
+        return $this->belongsTo(ArtistProfile::class, 'artist_profile_id');
     }
 
     public function user()

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PaginatedRequest;
+use App\Http\Requests\ReplyReviewRequest;
 use App\Http\Requests\StoreReviewRequest;
 use App\Http\Requests\UpdateReviewRequest;
 use App\Http\Resources\ReviewResource;
@@ -47,6 +48,18 @@ class ReviewController extends Controller
         $review->update($request->validated());
 
         return ApiResponse::success(new ReviewResource($review), 'Review updated successfully');
+    }
+
+    public function reply(ReplyReviewRequest $request, Review $review)
+    {
+        $this->authorize('reply', $review);
+
+        $review->update([
+            'reply' => $request->validated('reply'),
+            'replied_at' => now(),
+        ]);
+
+        return ApiResponse::success(new ReviewResource($review), 'Review replied successfully');
     }
 
     public function destroy(Review $review)

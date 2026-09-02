@@ -72,6 +72,7 @@ Route::middleware(['auth:sanctum', 'throttle:30,1'])->group(function () {
     Route::get('/artists/{id}/reviews', [ReviewController::class, 'index'])->name('artist.review.index');
     Route::patch('/reviews/{review}', [ReviewController::class, 'update'])->name('review.update');
     Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('review.destroy');
+    Route::patch('/reviews/{review}/reply', [ReviewController::class, 'reply'])->name('review.reply');
 
     Route::post('/artists/{id}/favorite', [FavoriteController::class, 'toggle'])->name('artist.favorite.toggle');
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorite.index');
