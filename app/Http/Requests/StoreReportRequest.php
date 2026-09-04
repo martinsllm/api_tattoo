@@ -70,4 +70,13 @@ class StoreReportRequest extends FormRequest
             }
         });
     }
+
+    public function prepareForValidation(): void
+    {
+        if ($this->filled('reason')) {
+            $this->merge([
+                'reason' => strtolower($this->input('reason')),
+            ]);
+        }
+    }
 }
