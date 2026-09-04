@@ -4,9 +4,8 @@ namespace App\Http\Requests;
 
 use App\Enums\ReportReason;
 use App\Enums\ReportStatus;
-use App\Models\ArtistProfile;
 use App\Models\Report;
-use App\Models\Review;
+use App\Traits\ResolvesReportableClass;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -14,6 +13,8 @@ use Illuminate\Validation\Validator;
 
 class StoreReportRequest extends FormRequest
 {
+    use ResolvesReportableClass;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -51,11 +52,7 @@ class StoreReportRequest extends FormRequest
         $type = $this->input('reportable_type');
 
         $validator->after(function (Validator $validator) use ($id, $type) {
-            $modelType = match ($type) {
-                'artist_profile' => $type = ArtistProfile::class,
-                'review' => $type = Review::class,
-                default => null,
-            };
+            $modelType = $this->resolveReportableClass($type);
 
             if ($modelType === null) {
                 return;

@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\HealthCheckController;
 use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\StyleController;
 use App\Http\Controllers\Api\TagController;
@@ -76,6 +77,8 @@ Route::middleware(['auth:sanctum', 'throttle:30,1'])->group(function () {
 
     Route::post('/artists/{id}/favorite', [FavoriteController::class, 'toggle'])->name('artist.favorite.toggle');
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorite.index');
+
+    Route::post('/reports', [ReportController::class, 'store'])->name('report.store');
 
 });
 
