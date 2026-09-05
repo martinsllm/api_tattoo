@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\Admin\ArtistAdminController;
 use App\Http\Controllers\Api\Admin\MetricsController;
+use App\Http\Controllers\Api\Admin\ReportAdminController;
 use App\Http\Controllers\Api\Admin\ReviewAdminController;
 use App\Http\Controllers\Api\Admin\StyleAdminController;
 use App\Http\Controllers\Api\Admin\TagAdminController;
@@ -98,4 +99,5 @@ Route::middleware(['auth:sanctum', 'role:admin', 'throttle:30,1'])->prefix('admi
     Route::delete('/tags/{tag}', [TagAdminController::class, 'destroy'])->name('tag.destroy');
 
     Route::get('/metrics', MetricsController::class)->name('metrics');
+    Route::get('/reports', [ReportAdminController::class, 'index'])->name('report.index');
 });
