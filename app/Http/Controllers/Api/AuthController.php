@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\DeleteAccountRequest;
-use App\Http\Requests\LoginRequest;
-use App\Http\Requests\StoreUserRequest;
-use App\Http\Requests\UpdateProfileRequest;
+use App\Http\Requests\Auth\DeleteAccountRequest;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\StoreUserRequest;
+use App\Http\Requests\Auth\UpdateProfileRequest;
 use App\Http\Resources\ArtistResource;
 use App\Http\Resources\UserResource;
 use App\Models\User;
