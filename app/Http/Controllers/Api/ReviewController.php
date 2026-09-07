@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\PaginatedRequest;
 use App\Http\Requests\ReplyReviewRequest;
+use App\Http\Requests\Shared\PaginatedRequest;
 use App\Http\Requests\StoreReviewRequest;
 use App\Http\Requests\UpdateReviewRequest;
 use App\Http\Resources\ReviewResource;
