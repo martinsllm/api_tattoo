@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\FilterArtistsRequest;
-use App\Http\Requests\StoreArtistRequest;
-use App\Http\Requests\UpdateArtistRequest;
+use App\Http\Requests\Artist\FilterArtistsRequest;
+use App\Http\Requests\Artist\StoreArtistRequest;
+use App\Http\Requests\Artist\UpdateArtistRequest;
 use App\Http\Resources\ArtistResource;
 use App\Models\ArtistProfile;
 use App\Services\ArtistService;

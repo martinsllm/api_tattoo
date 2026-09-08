@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Artist;
 
 use App\Enums\BrazilianState;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateArtistRequest extends FormRequest
+class StoreArtistRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,16 +25,16 @@ class UpdateArtistRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'studio_name' => ['sometimes', 'string', 'max:255'],
-            'starting_price' => ['sometimes', 'nullable', 'integer', 'min:0'],
+            'studio_name' => ['required', 'string', 'max:255'],
+            'starting_price' => ['nullable', 'integer', 'min:0'],
             'bio' => ['nullable', 'string'],
             'phone' => ['nullable', 'string', 'max:20'],
             'instagram' => ['nullable', 'string', 'max:255'],
             'address' => ['nullable', 'string', 'max:255'],
-            'city' => ['sometimes', 'string', 'max:100'],
-            'state' => ['sometimes', 'string', Rule::in(BrazilianState::values())],
-            'latitude' => ['sometimes', 'numeric'],
-            'longitude' => ['sometimes', 'numeric'],
+            'city' => ['required', 'string', 'max:100'],
+            'state' => ['required', 'string', Rule::in(BrazilianState::values())],
+            'latitude' => ['required', 'numeric'],
+            'longitude' => ['required', 'numeric'],
             'styles' => ['array'],
             'styles.*' => ['exists:styles,id'],
             'tags' => ['array'],

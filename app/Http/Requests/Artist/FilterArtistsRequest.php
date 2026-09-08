@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Artist;
 
 use App\Enums\BrazilianState;
 use Illuminate\Contracts\Validation\ValidationRule;

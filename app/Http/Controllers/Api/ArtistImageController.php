@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ReorderImagesRequest;
-use App\Http\Requests\StoreImageRequest;
+use App\Http\Requests\Artist\ReorderImagesRequest;
+use App\Http\Requests\Artist\StoreImageRequest;
 use App\Http\Resources\ArtistImageResource;
 use App\Models\ArtistImage;
 use App\Models\ArtistProfile;
