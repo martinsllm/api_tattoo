@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Review;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class ReplyReviewRequest extends FormRequest
+class StoreReviewRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,7 +23,9 @@ class ReplyReviewRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'reply' => ['required', 'string', 'max:1000'],
+            'artist_profile_id' => ['required', 'exists:artist_profiles,id'],
+            'rating' => ['required', 'integer', 'between:1,5'],
+            'comment' => ['nullable', 'string', 'max:1000'],
         ];
     }
 }
