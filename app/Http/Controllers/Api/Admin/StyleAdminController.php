@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreStyleRequest;
-use App\Http\Requests\UpdateStyleRequest;
+use App\Http\Requests\Admin\Style\StoreStyleRequest;
+use App\Http\Requests\Admin\Style\UpdateStyleRequest;
 use App\Http\Resources\StyleResource;
 use App\Models\Style;
 use Illuminate\Support\Facades\Cache;

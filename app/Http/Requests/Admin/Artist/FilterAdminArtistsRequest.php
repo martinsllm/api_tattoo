@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Admin\Artist;
 
 use App\Enums\BrazilianState;
 use Illuminate\Foundation\Http\FormRequest;

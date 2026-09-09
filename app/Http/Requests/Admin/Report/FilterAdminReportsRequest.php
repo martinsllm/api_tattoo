@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Admin\Report;
 
 use App\Enums\ReportStatus;
 use Illuminate\Contracts\Validation\ValidationRule;

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\FilterAdminArtistsRequest;
+use App\Http\Requests\Admin\Artist\FilterAdminArtistsRequest;
 use App\Http\Resources\ArtistResource;
 use App\Models\ArtistProfile;
 use App\Models\AuditLog;
