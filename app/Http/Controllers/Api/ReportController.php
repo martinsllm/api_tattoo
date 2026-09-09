@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Enums\ReportStatus;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreReportRequest;
+use App\Http\Requests\Report\StoreReportRequest;
 use App\Http\Resources\ReportResource;
 use App\Models\Report;
 use App\Traits\ResolvesReportableClass;
