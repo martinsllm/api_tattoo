@@ -55,6 +55,41 @@ class ScrambleDocumentationTest extends TestCase
         $this->assertArrayHasKey('401', $spec['paths']['/me']['get']['responses'] ?? []);
     }
 
+    public function test_docs_json_describes_moderation_endpoints(): void
+    {
+        $response = $this->get('/docs.json');
+
+        $response->assertOk();
+
+        $paths = $response->json('paths');
+
+        $this->assertArrayHasKey('/reviews/{review}', $paths);
+        $this->assertArrayHasKey('patch', $paths['/reviews/{review}']);
+        $this->assertArrayHasKey('delete', $paths['/reviews/{review}']);
+
+        $this->assertArrayHasKey('/reviews/{review}/reply', $paths);
+        $this->assertArrayHasKey('patch', $paths['/reviews/{review}/reply']);
+
+        $this->assertArrayHasKey('/reports', $paths);
+        $this->assertArrayHasKey('post', $paths['/reports']);
+        $this->assertArrayHasKey('422', $paths['/reports']['post']['responses'] ?? []);
+
+        $this->assertArrayHasKey('/admin/reports', $paths);
+        $this->assertArrayHasKey('get', $paths['/admin/reports']);
+        $this->assertArrayHasKey('403', $paths['/admin/reports']['get']['responses'] ?? []);
+
+        $reportsSchema = $paths['/admin/reports']['get']['responses']['200']['content']['application/json']['schema'] ?? [];
+        $this->assertArrayHasKey('data', $reportsSchema['properties'] ?? []);
+        $this->assertArrayHasKey('links', $reportsSchema['properties'] ?? []);
+        $this->assertArrayHasKey('meta', $reportsSchema['properties'] ?? []);
+
+        $this->assertArrayHasKey('/admin/reports/{report}', $paths);
+        $this->assertArrayHasKey('patch', $paths['/admin/reports/{report}']);
+
+        $this->assertArrayHasKey('/admin/reviews/{review}', $paths);
+        $this->assertArrayHasKey('delete', $paths['/admin/reviews/{review}']);
+    }
+
     public function test_docs_are_forbidden_in_production_when_docs_disabled(): void
     {
         $this->app->detectEnvironment(fn () => 'production');

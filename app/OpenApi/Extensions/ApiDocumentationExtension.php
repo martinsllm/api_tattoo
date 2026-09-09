@@ -3,6 +3,7 @@
 namespace App\OpenApi\Extensions;
 
 use App\Http\Resources\ArtistResource;
+use App\Http\Resources\ReportResource;
 use App\Http\Resources\ReviewResource;
 use Dedoc\Scramble\Extensions\OperationExtension;
 use Dedoc\Scramble\Support\Generator\Operation;
@@ -25,6 +26,7 @@ class ApiDocumentationExtension extends OperationExtension
         'GET:api/v1/artists' => [ArtistResource::class, 'Artists retrieved successfully'],
         'GET:api/v1/favorites' => [ArtistResource::class, 'Favorite artists retrieved successfully'],
         'GET:api/v1/artists/{artistId}/reviews' => [ReviewResource::class, 'Reviews retrieved successfully'],
+        'GET:api/v1/admin/reports' => [ReportResource::class, 'Reports retrieved successfully'],
     ];
 
     public function handle(Operation $operation, RouteInfo $routeInfo): void
