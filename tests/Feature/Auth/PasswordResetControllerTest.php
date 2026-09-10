@@ -5,9 +5,10 @@ namespace Tests\Feature\Auth;
 use App\Models\User;
 use App\Notifications\PasswordResetNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Notifications\SendQueuedNotifications;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class PasswordResetControllerTest extends TestCase
@@ -16,7 +17,7 @@ class PasswordResetControllerTest extends TestCase
 
     public function test_forgot_sends_reset_notification_for_existing_user(): void
     {
-        Notification::fake();
+        Queue::fake();
 
         $user = User::factory()->create();
 
@@ -27,12 +28,15 @@ class PasswordResetControllerTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('message', 'Se o e-mail estiver cadastrado, enviaremos as instruções de redefinição.');
 
-        Notification::assertSentTo($user, PasswordResetNotification::class);
+        Queue::assertPushed(SendQueuedNotifications::class, function (SendQueuedNotifications $job) use ($user): bool {
+            return $job->notification instanceof PasswordResetNotification
+                && $job->notifiables->contains(fn ($notifiable) => $notifiable->is($user));
+        });
     }
 
     public function test_forgot_returns_success_for_unknown_email_without_sending(): void
     {
-        Notification::fake();
+        Queue::fake();
 
         $response = $this->postJson(route('password.forgot'), [
             'email' => 'naoexiste@example.com',
@@ -41,7 +45,7 @@ class PasswordResetControllerTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('message', 'Se o e-mail estiver cadastrado, enviaremos as instruções de redefinição.');
 
-        Notification::assertNothingSent();
+        Queue::assertNothingPushed();
     }
 
     public function test_forgot_requires_a_valid_email(): void

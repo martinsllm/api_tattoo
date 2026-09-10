@@ -7,8 +7,10 @@ use App\Models\Review;
 use App\Models\User;
 use App\Notifications\PendingEmailChangeNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Notifications\SendQueuedNotifications;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\URL;
 use Laravel\Sanctum\Sanctum;
 use Spatie\Permission\Models\Role;
@@ -422,7 +424,7 @@ class AuthControllerTest extends TestCase
 
     public function test_update_profile_sends_pending_email_change_notification(): void
     {
-        Notification::fake();
+        Queue::fake();
 
         $user = User::factory()->create(['email' => 'old@example.com']);
         Sanctum::actingAs($user);
@@ -431,14 +433,15 @@ class AuthControllerTest extends TestCase
             'email' => 'new@example.com',
         ])->assertOk();
 
-        Notification::assertSentTo(
-            $user,
-            PendingEmailChangeNotification::class,
-            function (PendingEmailChangeNotification $notification, array $channels, object $notifiable) use ($user): bool {
-                return $notifiable->is($user)
-                    && $notifiable->pending_email === 'new@example.com';
+        Queue::assertPushed(SendQueuedNotifications::class, function (SendQueuedNotifications $job) use ($user): bool {
+            if (! $job->notification instanceof PendingEmailChangeNotification) {
+                return false;
             }
-        );
+            $notifiable = $job->notifiables->first();
+
+            return $notifiable->is($user)
+                && $notifiable->pending_email === 'new@example.com';
+        });
     }
 
     public function test_update_profile_stores_pending_email_and_updates_name_in_same_request(): void

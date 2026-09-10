@@ -6,7 +6,8 @@ use App\Models\ArtistProfile;
 use App\Models\User;
 use App\Notifications\EmailVerificationNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Notification;
+use Illuminate\Notifications\SendQueuedNotifications;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\URL;
 use Laravel\Sanctum\Sanctum;
 use Spatie\Permission\Models\Role;
@@ -18,7 +19,7 @@ class EmailVerificationControllerTest extends TestCase
 
     public function test_resend_sends_verification_notification_for_unverified_user(): void
     {
-        Notification::fake();
+        Queue::fake();
 
         $user = User::factory()->unverified()->create();
         Sanctum::actingAs($user);
@@ -28,12 +29,15 @@ class EmailVerificationControllerTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('message', 'Link de verificação enviado.');
 
-        Notification::assertSentTo($user, EmailVerificationNotification::class);
+        Queue::assertPushed(SendQueuedNotifications::class, function (SendQueuedNotifications $job) use ($user): bool {
+            return $job->notification instanceof EmailVerificationNotification
+                && $job->notifiables->contains(fn ($notifiable) => $notifiable->is($user));
+        });
     }
 
     public function test_resend_returns_422_when_email_already_verified(): void
     {
-        Notification::fake();
+        Queue::fake();
 
         $user = User::factory()->create();
         Sanctum::actingAs($user);
@@ -43,7 +47,7 @@ class EmailVerificationControllerTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonPath('message', 'E-mail já verificado.');
 
-        Notification::assertNothingSent();
+        Queue::assertNothingPushed();
     }
 
     public function test_resend_requires_authentication(): void
@@ -55,7 +59,7 @@ class EmailVerificationControllerTest extends TestCase
 
     public function test_resend_invalidates_previous_verification_link(): void
     {
-        Notification::fake();
+        Queue::fake();
 
         $user = User::factory()->unverified()->create();
         $oldToken = $user->rotateEmailVerificationToken();
