@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Jobs\GenerateArtistImageThumbnail;
 use App\Models\ArtistImage;
 use App\Models\ArtistProfile;
 use Illuminate\Http\UploadedFile;
@@ -27,11 +28,15 @@ class ArtistImageService
                     $image_url = $file->store('artists', 'public');
                     $storedPaths[] = $image_url;
 
-                    $images[] = ArtistImage::create([
+                    $image = ArtistImage::create([
                         'artist_profile_id' => $artist->id,
                         'image_url' => $image_url,
                         'position' => $nextPosition++,
                     ]);
+
+                    GenerateArtistImageThumbnail::dispatch($image->id);
+
+                    $images[] = $image;
                 }
 
                 return $images;

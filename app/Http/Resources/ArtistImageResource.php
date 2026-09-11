@@ -14,9 +14,12 @@ class ArtistImageResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $originalUrl = asset('storage/'.$this->image_url);
+
         return [
             'id' => $this->id,
-            'url' => asset('storage/'.$this->image_url),
+            'url' => $originalUrl,
+            'thumbnail_url' => $this->thumbnail_url ? asset('storage/'.$this->thumbnail_url) : $originalUrl,
             'is_main' => $this->is_main,
             'created_at' => $this->created_at,
         ];
