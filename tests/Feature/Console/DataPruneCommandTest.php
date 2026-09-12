@@ -63,6 +63,45 @@ class DataPruneCommandTest extends TestCase
         $this->assertModelExists($expiredAuditLog);
     }
 
+    public function test_does_not_prune_referenced_thumbnail(): void
+    {
+        Storage::fake('public');
+
+        Storage::disk('public')->put('artists/valid.jpg', 'valid-image');
+        Storage::disk('public')->put('artists/thumbs/1.jpg', 'valid-thumbnail');
+
+        ArtistImage::factory()->create([
+            'image_url' => 'artists/valid.jpg',
+            'thumbnail_url' => 'artists/thumbs/1.jpg',
+        ]);
+
+        $this->artisan('data:prune')
+            ->expectsOutput('Orphaned images: 0')
+            ->assertSuccessful();
+
+        Storage::disk('public')->assertExists('artists/valid.jpg');
+        Storage::disk('public')->assertExists('artists/thumbs/1.jpg');
+    }
+
+    public function test_prunes_orphaned_thumbnail(): void
+    {
+        Storage::fake('public');
+
+        Storage::disk('public')->put('artists/valid.jpg', 'valid-image');
+        Storage::disk('public')->put('artists/thumbs/orphaned.jpg', 'orphaned-thumbnail');
+
+        ArtistImage::factory()->create([
+            'image_url' => 'artists/valid.jpg',
+        ]);
+
+        $this->artisan('data:prune')
+            ->expectsOutput('Orphaned images: 1')
+            ->assertSuccessful();
+
+        Storage::disk('public')->assertExists('artists/valid.jpg');
+        Storage::disk('public')->assertMissing('artists/thumbs/orphaned.jpg');
+    }
+
     public function test_data_prune_is_registered_in_schedule(): void
     {
         $this->artisan('schedule:list')

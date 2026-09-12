@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\ArtistImage;
 use App\Models\AuditLog;
+use App\Services\ArtistImageThumbnailService;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -16,11 +17,11 @@ class DataPruneCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(): int
+    public function handle(ArtistImageThumbnailService $thumbnailService): int
     {
         $dryRun = (bool) $this->option('dry-run');
 
-        $orphanedImagesCount = $this->pruneOrphanedImages($dryRun);
+        $orphanedImagesCount = $this->pruneOrphanedImages($dryRun, $thumbnailService);
         $expiredAuditLogsCount = $this->pruneExpiredAuditLogs($dryRun);
 
         $this->info("Orphaned images: {$orphanedImagesCount}");
@@ -29,11 +30,14 @@ class DataPruneCommand extends Command
         return self::SUCCESS;
     }
 
-    private function pruneOrphanedImages(bool $dryRun): int
+    private function pruneOrphanedImages(bool $dryRun, ArtistImageThumbnailService $thumbnailService): int
     {
         $disk = Storage::disk('public');
 
-        $storedImages = ArtistImage::pluck('image_url')->all();
+        $storedImages = array_merge(
+            ArtistImage::pluck('image_url')->all(),
+            $thumbnailService->pathsInUse(),
+        );
 
         $files = $disk->allFiles('artists');
 

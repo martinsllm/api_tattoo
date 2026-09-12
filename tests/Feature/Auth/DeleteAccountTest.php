@@ -42,8 +42,15 @@ class DeleteAccountTest extends TestCase
 
         $images = ArtistImage::factory()->for($artist, 'artist')->count(3)->create();
 
-        foreach ($images as $image) {
+        foreach ($images as $index => $image) {
+            $thumbnailUrl = 'artists/thumbs/'.$image->id.'.jpg';
+
             Storage::disk('public')->put($image->image_url, 'fake-content');
+            Storage::disk('public')->put($thumbnailUrl, 'fake-thumbnail');
+
+            if ($index > 0) {
+                $image->update(['thumbnail_url' => $thumbnailUrl]);
+            }
         }
 
         Sanctum::actingAs($user);
@@ -60,6 +67,7 @@ class DeleteAccountTest extends TestCase
 
         foreach ($images as $image) {
             Storage::disk('public')->assertMissing($image->image_url);
+            Storage::disk('public')->assertMissing('artists/thumbs/'.$image->id.'.jpg');
         }
     }
 

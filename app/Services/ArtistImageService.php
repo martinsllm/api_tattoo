@@ -11,6 +11,10 @@ use Illuminate\Support\Facades\Storage;
 
 class ArtistImageService
 {
+    public function __construct(
+        private readonly ArtistImageThumbnailService $thumbnailService,
+    ) {}
+
     /**
      * @param  array<int, UploadedFile>  $files
      * @return array<int, ArtistImage>
@@ -77,6 +81,7 @@ class ArtistImageService
         }
 
         Storage::disk('public')->delete($image->image_url);
+        $this->thumbnailService->delete($image);
 
         $image->delete();
 

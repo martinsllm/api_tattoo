@@ -2,11 +2,13 @@
 
 namespace Tests\Feature\Artist;
 
+use App\Jobs\GenerateArtistImageThumbnail;
 use App\Models\ArtistImage;
 use App\Models\ArtistProfile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Spatie\Permission\Models\Role;
@@ -44,7 +46,7 @@ class ArtistImageControllerTest extends TestCase
         $response->assertStatus(201)
             ->assertJsonStructure([
                 'data' => [
-                    '*' => ['id', 'url', 'is_main', 'created_at'],
+                    '*' => ['id', 'url', 'thumbnail_url', 'is_main', 'created_at'],
                 ],
                 'message',
             ])
@@ -57,8 +59,59 @@ class ArtistImageControllerTest extends TestCase
         $this->assertSame($artist->id, $image->artist_profile_id);
         $this->assertFalse((bool) $image->is_main);
         $this->assertStringStartsWith('artists/', $image->image_url);
+        $this->assertNotNull($image->thumbnail_url);
 
         Storage::disk('public')->assertExists($image->image_url);
+        Storage::disk('public')->assertExists($image->thumbnail_url);
+    }
+
+    public function test_store_dispatches_thumbnail_generation_job(): void
+    {
+        Storage::fake('public');
+        Queue::fake();
+
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $artist = ArtistProfile::factory()->for($user)->create();
+
+        $response = $this->postJson(route('artist.image.store', $artist->id), [
+            'images' => [
+                UploadedFile::fake()->image('image1.jpg'),
+            ],
+        ]);
+
+        $response->assertStatus(201);
+
+        $image = ArtistImage::first();
+
+        Queue::assertPushed(GenerateArtistImageThumbnail::class, function (GenerateArtistImageThumbnail $job) use ($image): bool {
+            return $job->artistImageId === $image->id;
+        });
+    }
+
+    public function test_store_creates_original_and_thumbnail_on_disk(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $artist = ArtistProfile::factory()->for($user)->create();
+
+        $response = $this->postJson(route('artist.image.store', $artist->id), [
+            'images' => [
+                UploadedFile::fake()->image('image1.jpg'),
+            ],
+        ]);
+
+        $response->assertStatus(201);
+
+        $image = ArtistImage::query()->firstOrFail();
+
+        $this->assertSame('artists/thumbs/'.$image->id.'.jpg', $image->thumbnail_url);
+        Storage::disk('public')->assertExists($image->image_url);
+        Storage::disk('public')->assertExists($image->thumbnail_url);
     }
 
     public function test_store_rejects_when_user_is_not_the_artist(): void
@@ -263,8 +316,11 @@ class ArtistImageControllerTest extends TestCase
         $artist = ArtistProfile::factory()->for($user)->create();
 
         $image = ArtistImage::factory()->for($artist, 'artist')->create();
+        $thumbnailUrl = 'artists/thumbs/'.$image->id.'.jpg';
+        $image->update(['thumbnail_url' => $thumbnailUrl]);
 
         Storage::disk('public')->put($image->image_url, 'fake-content');
+        Storage::disk('public')->put($thumbnailUrl, 'fake-thumbnail');
 
         $response = $this->deleteJson(route('artist.image.destroy', $image->id));
 
@@ -273,6 +329,34 @@ class ArtistImageControllerTest extends TestCase
 
         $this->assertDatabaseMissing('artist_images', ['id' => $image->id]);
         Storage::disk('public')->assertMissing($image->image_url);
+        Storage::disk('public')->assertMissing($thumbnailUrl);
+    }
+
+    public function test_destroy_removes_thumbnail_file_even_when_thumbnail_url_is_null(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $artist = ArtistProfile::factory()->for($user)->create();
+
+        $image = ArtistImage::factory()->for($artist, 'artist')->create([
+            'thumbnail_url' => null,
+        ]);
+
+        $thumbnailUrl = 'artists/thumbs/'.$image->id.'.jpg';
+
+        Storage::disk('public')->put($image->image_url, 'fake-content');
+        Storage::disk('public')->put($thumbnailUrl, 'fake-thumbnail');
+
+        $response = $this->deleteJson(route('artist.image.destroy', $image->id));
+
+        $response->assertOk();
+
+        $this->assertDatabaseMissing('artist_images', ['id' => $image->id]);
+        Storage::disk('public')->assertMissing($image->image_url);
+        Storage::disk('public')->assertMissing($thumbnailUrl);
     }
 
     public function test_destroy_requires_authentication(): void
