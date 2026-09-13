@@ -3,13 +3,14 @@
 namespace App\Services;
 
 use App\Models\User;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class AccountService
 {
     public function __construct(
         private readonly ArtistImageThumbnailService $thumbnailService,
+        private readonly Filesystem $disk,
     ) {}
 
     public function delete(User $user): void
@@ -34,7 +35,7 @@ class AccountService
             $user->delete();
         });
 
-        Storage::disk('public')->delete($paths);
+        $this->disk->delete($paths);
 
     }
 }

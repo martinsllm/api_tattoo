@@ -8,7 +8,7 @@ use App\Services\ArtistImageThumbnailService;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Contracts\Filesystem\Filesystem;
 
 #[Signature('data:prune {--dry-run : Show what would be pruned without deleting anything}')]
 #[Description('Prune orphaned files and expired audit logs')]
@@ -17,11 +17,11 @@ class DataPruneCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(ArtistImageThumbnailService $thumbnailService): int
+    public function handle(ArtistImageThumbnailService $thumbnailService, Filesystem $disk): int
     {
         $dryRun = (bool) $this->option('dry-run');
 
-        $orphanedImagesCount = $this->pruneOrphanedImages($dryRun, $thumbnailService);
+        $orphanedImagesCount = $this->pruneOrphanedImages($dryRun, $thumbnailService, $disk);
         $expiredAuditLogsCount = $this->pruneExpiredAuditLogs($dryRun);
 
         $this->info("Orphaned images: {$orphanedImagesCount}");
@@ -30,10 +30,8 @@ class DataPruneCommand extends Command
         return self::SUCCESS;
     }
 
-    private function pruneOrphanedImages(bool $dryRun, ArtistImageThumbnailService $thumbnailService): int
+    private function pruneOrphanedImages(bool $dryRun, ArtistImageThumbnailService $thumbnailService, Filesystem $disk): int
     {
-        $disk = Storage::disk('public');
-
         $storedImages = array_merge(
             ArtistImage::pluck('image_url')->all(),
             $thumbnailService->pathsInUse(),

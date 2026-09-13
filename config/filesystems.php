@@ -14,6 +14,7 @@ return [
     */
 
     'default' => env('FILESYSTEM_DISK', 'local'),
+    'artist_images_disk' => env('ARTIST_IMAGES_DISK', 'public'),
 
     /*
     |--------------------------------------------------------------------------

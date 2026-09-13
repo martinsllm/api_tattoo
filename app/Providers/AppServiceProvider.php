@@ -2,18 +2,24 @@
 
 namespace App\Providers;
 
+use App\Console\Commands\DataPruneCommand;
 use App\Models\ArtistImage;
 use App\Models\ArtistProfile;
 use App\Models\Review;
 use App\Policies\ArtistImagePolicy;
 use App\Policies\ArtistProfilePolicy;
 use App\Policies\ReviewPolicy;
+use App\Services\AccountService;
+use App\Services\ArtistImageService;
+use App\Services\ArtistImageThumbnailService;
 use Dedoc\Scramble\Scramble;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 
@@ -22,7 +28,12 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Register any application services.
      */
-    public function register(): void {}
+    public function register(): void
+    {
+        $this->app->when([ArtistImageService::class, ArtistImageThumbnailService::class, AccountService::class, DataPruneCommand::class])
+            ->needs(Filesystem::class)
+            ->give(fn () => Storage::disk(config('filesystems.artist_images_disk')));
+    }
 
     /**
      * Bootstrap any application services.

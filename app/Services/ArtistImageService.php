@@ -5,14 +5,15 @@ namespace App\Services;
 use App\Jobs\GenerateArtistImageThumbnail;
 use App\Models\ArtistImage;
 use App\Models\ArtistProfile;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class ArtistImageService
 {
     public function __construct(
         private readonly ArtistImageThumbnailService $thumbnailService,
+        private readonly Filesystem $disk,
     ) {}
 
     /**
@@ -29,7 +30,7 @@ class ArtistImageService
                 $nextPosition = ($artist->images()->max('position') ?? -1) + 1;
 
                 foreach ($files as $file) {
-                    $image_url = $file->store('artists', 'public');
+                    $image_url = $file->store('artists', config('filesystems.artist_images_disk'));
                     $storedPaths[] = $image_url;
 
                     $image = ArtistImage::create([
@@ -46,7 +47,7 @@ class ArtistImageService
                 return $images;
             });
         } catch (\Throwable $e) {
-            Storage::disk('public')->delete($storedPaths);
+            $this->disk->delete($storedPaths);
 
             throw $e;
         }
@@ -80,7 +81,7 @@ class ArtistImageService
             throw new \DomainException('Cannot delete main image');
         }
 
-        Storage::disk('public')->delete($image->image_url);
+        $this->disk->delete($image->image_url);
         $this->thumbnailService->delete($image);
 
         $image->delete();
