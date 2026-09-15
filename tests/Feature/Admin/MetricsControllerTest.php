@@ -6,6 +6,7 @@ use App\Models\ArtistProfile;
 use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\Sanctum;
 use Spatie\Permission\Models\Role;
@@ -138,5 +139,35 @@ class MetricsControllerTest extends TestCase
 
         $response->assertStatus(403)
             ->assertJson(['message' => 'Forbidden']);
+    }
+
+    public function test_metrics_returns_cached_totals_on_second_request(): void
+    {
+        $this->travelTo('2026-09-15 12:00:00');
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        ArtistProfile::factory()->count(2)->create();
+
+        Sanctum::actingAs($admin);
+
+        $this->getJson(route('admin.metrics'))
+            ->assertOk()
+            ->assertJsonPath('data.total_artists', 2);
+
+        $this->assertTrue(Cache::has('metrics_2026_09'));
+
+        ArtistProfile::factory()->create();
+
+        $this->getJson(route('admin.metrics'))
+            ->assertOk()
+            ->assertJsonPath('data.total_artists', 2);
+
+        Cache::forget('metrics_2026_09');
+
+        $this->getJson(route('admin.metrics'))
+            ->assertOk()
+            ->assertJsonPath('data.total_artists', 3);
     }
 }
