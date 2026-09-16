@@ -32,6 +32,7 @@ class ApiDocumentationExtension extends OperationExtension
     public function handle(Operation $operation, RouteInfo $routeInfo): void
     {
         $this->fixPaginatedResponse($operation);
+        $this->addHealthCheckResponses($operation);
         $this->addNotFoundResponse($operation);
         $this->addForbiddenResponseForAdmin($operation);
     }
@@ -89,6 +90,49 @@ class ApiDocumentationExtension extends OperationExtension
             ->addProperty('meta', $meta)
             ->addProperty('message', (new StringType)->const($message))
             ->setRequired(['data', 'links', 'meta', 'message']);
+    }
+
+    private function addHealthCheckResponses(Operation $operation): void
+    {
+        if ($operation->path !== 'api/v1/health' || strtoupper($operation->method) !== 'GET') {
+            return;
+        }
+
+        $operation->responses = [];
+
+        $operation->addResponse(
+            Response::make(200)
+                ->setDescription('All dependencies are available')
+                ->setContent(
+                    'application/json',
+                    Schema::fromType($this->buildHealthCheckBody(statusValues: ['ok'])),
+                )
+        );
+
+        $operation->addResponse(
+            Response::make(503)
+                ->setDescription('One or more dependencies are unavailable')
+                ->setContent(
+                    'application/json',
+                    Schema::fromType($this->buildHealthCheckBody(statusValues: ['ok', 'fail'])),
+                )
+        );
+    }
+
+    /**
+     * @param  array<int, string>  $statusValues
+     */
+    private function buildHealthCheckBody(array $statusValues): ObjectType
+    {
+        $dependencyStatus = (new StringType)->enum(['ok', 'fail']);
+
+        return (new ObjectType)
+            ->addProperty('status', (new StringType)->enum($statusValues))
+            ->addProperty('database', $dependencyStatus)
+            ->addProperty('queue', $dependencyStatus)
+            ->addProperty('storage', $dependencyStatus)
+            ->addProperty('timestamp', new StringType)
+            ->setRequired(['status', 'database', 'queue', 'storage', 'timestamp']);
     }
 
     private function addNotFoundResponse(Operation $operation): void

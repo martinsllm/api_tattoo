@@ -53,6 +53,16 @@ class ScrambleDocumentationTest extends TestCase
         $this->assertArrayHasKey('403', $spec['paths']['/admin/artists/{artist}/deactivate']['patch']['responses'] ?? []);
         $this->assertArrayHasKey('422', $spec['paths']['/login']['post']['responses'] ?? []);
         $this->assertArrayHasKey('401', $spec['paths']['/me']['get']['responses'] ?? []);
+
+        $healthResponses = $spec['paths']['/health']['get']['responses'] ?? [];
+        $this->assertArrayHasKey('200', $healthResponses);
+        $this->assertArrayHasKey('503', $healthResponses);
+
+        $healthSchema = $healthResponses['200']['content']['application/json']['schema']['properties'] ?? [];
+        $this->assertArrayHasKey('database', $healthSchema);
+        $this->assertArrayHasKey('queue', $healthSchema);
+        $this->assertArrayHasKey('storage', $healthSchema);
+        $this->assertArrayHasKey('timestamp', $healthSchema);
     }
 
     public function test_docs_json_describes_moderation_endpoints(): void

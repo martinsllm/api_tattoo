@@ -2,10 +2,21 @@
 
 namespace Tests\Feature\Cors;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class CorsConfigurationTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Storage::fake(config('filesystems.artist_images_disk'));
+    }
+
     public function test_allowed_origin_receives_access_control_allow_origin_header(): void
     {
         config(['cors.allowed_origins' => ['https://allowed.test']]);
