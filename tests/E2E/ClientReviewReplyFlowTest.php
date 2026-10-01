@@ -2,7 +2,6 @@
 
 namespace Tests\E2E;
 
-use App\Models\ArtistProfile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
@@ -23,26 +22,11 @@ class ClientReviewReplyFlowTest extends TestCase
 
     public function test_client_can_review_and_artist_can_reply()
     {
-        $client = User::factory()->create([
-            'email' => 'client@example.com',
-            'password' => 'password',
-        ]);
+        $client = User::factory()->client()->create();
 
-        $profileOwner = User::factory()->create([
-            'email' => 'artist@example.com',
-            'password' => 'password',
-        ]);
+        $profileOwner = User::factory()->artist()->create();
 
-        $client->assignRole('client');
-        $profileOwner->assignRole('artist');
-
-        $artistProfile = ArtistProfile::factory()->create([
-            'user_id' => $profileOwner->id,
-        ]);
-
-        $this->assertDatabaseHas('artist_profiles', [
-            'user_id' => $profileOwner->id,
-        ]);
+        $artistProfile = $profileOwner->artistProfile;
 
         $loginResponse = $this->postJson(route('auth.login'), [
             'email' => $client->email,

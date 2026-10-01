@@ -21,14 +21,9 @@ class ClientFavoriteFlowTest extends TestCase
 
     public function test_client_can_login_and_favorite_an_artist(): void
     {
-        $client = User::factory()->create([
-            'email' => 'client@example.com',
-            'password' => 'password',
-        ]);
+        $client = User::factory()->client()->create();
 
         $artist = ArtistProfile::factory()->create();
-
-        $client->assignRole('client');
 
         $loginResponse = $this->postJson(route('auth.login'), [
             'email' => $client->email,
