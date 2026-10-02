@@ -169,8 +169,7 @@ class ArtistControllerTest extends TestCase
 
     public function test_store_rejects_when_user_already_has_artist_profile(): void
     {
-        $user = User::factory()->create();
-        ArtistProfile::factory()->for($user)->create();
+        $user = User::factory()->artist()->create();
 
         Sanctum::actingAs($user);
 

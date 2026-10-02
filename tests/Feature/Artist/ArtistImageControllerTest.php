@@ -4,7 +4,6 @@ namespace Tests\Feature\Artist;
 
 use App\Jobs\GenerateArtistImageThumbnail;
 use App\Models\ArtistImage;
-use App\Models\ArtistProfile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -23,17 +22,18 @@ class ArtistImageControllerTest extends TestCase
         parent::setUp();
 
         Role::findOrCreate('admin');
+        Role::findOrCreate('artist');
     }
 
     public function test_store_creates_artist_images_for_authenticated_user(): void
     {
         Storage::fake('public');
 
-        $user = User::factory()->create();
+        $user = User::factory()->artist()->create();
 
         Sanctum::actingAs($user);
 
-        $artist = ArtistProfile::factory()->for($user)->create();
+        $artist = $user->artistProfile;
 
         $payload = [
             'images' => [
@@ -70,10 +70,10 @@ class ArtistImageControllerTest extends TestCase
         Storage::fake('public');
         Queue::fake();
 
-        $user = User::factory()->create();
+        $user = User::factory()->artist()->create();
         Sanctum::actingAs($user);
 
-        $artist = ArtistProfile::factory()->for($user)->create();
+        $artist = $user->artistProfile;
 
         $response = $this->postJson(route('artist.image.store', $artist->id), [
             'images' => [
@@ -94,10 +94,10 @@ class ArtistImageControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $user = User::factory()->create();
+        $user = User::factory()->artist()->create();
         Sanctum::actingAs($user);
 
-        $artist = ArtistProfile::factory()->for($user)->create();
+        $artist = $user->artistProfile;
 
         $response = $this->postJson(route('artist.image.store', $artist->id), [
             'images' => [
@@ -118,10 +118,10 @@ class ArtistImageControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $owner = User::factory()->create();
+        $owner = User::factory()->artist()->create();
         $intruder = User::factory()->create();
 
-        $artist = ArtistProfile::factory()->for($owner)->create();
+        $artist = $owner->artistProfile;
 
         Sanctum::actingAs($intruder);
 
@@ -146,10 +146,10 @@ class ArtistImageControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $user = User::factory()->create();
+        $user = User::factory()->artist()->create();
         Sanctum::actingAs($user);
 
-        $artist = ArtistProfile::factory()->for($user)->create();
+        $artist = $user->artistProfile;
 
         $images = [];
         for ($i = 1; $i <= 11; $i++) {
@@ -171,10 +171,10 @@ class ArtistImageControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $user = User::factory()->create();
+        $user = User::factory()->artist()->create();
         Sanctum::actingAs($user);
 
-        $artist = ArtistProfile::factory()->for($user)->create();
+        $artist = $user->artistProfile;
 
         $response = $this->postJson(route('artist.image.store', $artist->id), [
             'images' => [
@@ -193,10 +193,10 @@ class ArtistImageControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $user = User::factory()->create();
+        $user = User::factory()->artist()->create();
         Sanctum::actingAs($user);
 
-        $artist = ArtistProfile::factory()->for($user)->create();
+        $artist = $user->artistProfile;
 
         $response = $this->postJson(route('artist.image.store', $artist->id), [
             'images' => [
@@ -215,10 +215,10 @@ class ArtistImageControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $user = User::factory()->create();
+        $user = User::factory()->artist()->create();
         Sanctum::actingAs($user);
 
-        $artist = ArtistProfile::factory()->for($user)->create();
+        $artist = $user->artistProfile;
 
         $response = $this->postJson(route('artist.image.store', $artist->id), [
             'images' => [
@@ -237,10 +237,10 @@ class ArtistImageControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $user = User::factory()->create();
+        $user = User::factory()->artist()->create();
         Sanctum::actingAs($user);
 
-        $artist = ArtistProfile::factory()->for($user)->create();
+        $artist = $user->artistProfile;
 
         $previousMain = ArtistImage::factory()->for($artist, 'artist')->main()->create();
         $target = ArtistImage::factory()->for($artist, 'artist')->create();
@@ -264,8 +264,8 @@ class ArtistImageControllerTest extends TestCase
 
     public function test_set_main_requires_authentication(): void
     {
-        $owner = User::factory()->create();
-        $artist = ArtistProfile::factory()->for($owner)->create();
+        $owner = User::factory()->artist()->create();
+        $artist = $owner->artistProfile;
 
         $image = ArtistImage::factory()->for($artist, 'artist')->create();
 
@@ -286,10 +286,10 @@ class ArtistImageControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $owner = User::factory()->create();
+        $owner = User::factory()->artist()->create();
         $intruder = User::factory()->create();
 
-        $artist = ArtistProfile::factory()->for($owner)->create();
+        $artist = $owner->artistProfile;
 
         $image = ArtistImage::factory()->for($artist, 'artist')->create();
 
@@ -310,10 +310,10 @@ class ArtistImageControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $user = User::factory()->create();
+        $user = User::factory()->artist()->create();
         Sanctum::actingAs($user);
 
-        $artist = ArtistProfile::factory()->for($user)->create();
+        $artist = $user->artistProfile;
 
         $image = ArtistImage::factory()->for($artist, 'artist')->create();
         $thumbnailUrl = 'artists/thumbs/'.$image->id.'.jpg';
@@ -336,10 +336,10 @@ class ArtistImageControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $user = User::factory()->create();
+        $user = User::factory()->artist()->create();
         Sanctum::actingAs($user);
 
-        $artist = ArtistProfile::factory()->for($user)->create();
+        $artist = $user->artistProfile;
 
         $image = ArtistImage::factory()->for($artist, 'artist')->create([
             'thumbnail_url' => null,
@@ -363,8 +363,8 @@ class ArtistImageControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $owner = User::factory()->create();
-        $artist = ArtistProfile::factory()->for($owner)->create();
+        $owner = User::factory()->artist()->create();
+        $artist = $owner->artistProfile;
 
         $image = ArtistImage::factory()->for($artist, 'artist')->create();
 
@@ -385,10 +385,10 @@ class ArtistImageControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $user = User::factory()->create();
+        $user = User::factory()->artist()->create();
         Sanctum::actingAs($user);
 
-        $artist = ArtistProfile::factory()->for($user)->create();
+        $artist = $user->artistProfile;
 
         $image = ArtistImage::factory()->for($artist, 'artist')->main()->create();
 
@@ -410,10 +410,10 @@ class ArtistImageControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $owner = User::factory()->create();
+        $owner = User::factory()->artist()->create();
         $intruder = User::factory()->create();
 
-        $artist = ArtistProfile::factory()->for($owner)->create();
+        $artist = $owner->artistProfile;
 
         $image = ArtistImage::factory()->for($artist, 'artist')->create();
 
@@ -434,11 +434,11 @@ class ArtistImageControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $owner = User::factory()->create();
+        $owner = User::factory()->artist()->create();
         $admin = User::factory()->create();
         $admin->assignRole('admin');
 
-        $artist = ArtistProfile::factory()->for($owner)->create();
+        $artist = $owner->artistProfile;
 
         $image = ArtistImage::factory()->for($artist, 'artist')->create();
 
@@ -459,11 +459,11 @@ class ArtistImageControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $owner = User::factory()->create();
+        $owner = User::factory()->artist()->create();
         $admin = User::factory()->create();
         $admin->assignRole('admin');
 
-        $artist = ArtistProfile::factory()->for($owner)->create();
+        $artist = $owner->artistProfile;
 
         $image = ArtistImage::factory()->for($artist, 'artist')->create();
 
@@ -484,10 +484,10 @@ class ArtistImageControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $user = User::factory()->create();
+        $user = User::factory()->artist()->create();
         Sanctum::actingAs($user);
 
-        $artist = ArtistProfile::factory()->for($user)->create();
+        $artist = $user->artistProfile;
 
         $images = ArtistImage::factory()->for($artist, 'artist')->count(3)->sequence(
             fn ($sequence) => ['position' => $sequence->index],
@@ -520,10 +520,10 @@ class ArtistImageControllerTest extends TestCase
     {
         Storage::fake('public');
 
-        $owner = User::factory()->create();
+        $owner = User::factory()->artist()->create();
         $intruder = User::factory()->create();
 
-        $artist = ArtistProfile::factory()->for($owner)->create();
+        $artist = $owner->artistProfile;
 
         $images = ArtistImage::factory()->for($artist, 'artist')->count(3)->sequence(
             fn ($sequence) => ['position' => $sequence->index],
