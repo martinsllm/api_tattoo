@@ -19,6 +19,7 @@ class ReviewControllerTest extends TestCase
         parent::setUp();
 
         Role::findOrCreate('admin');
+        Role::findOrCreate('artist');
     }
 
     public function test_index_returns_pagination_metadata_at_root_level(): void
@@ -119,11 +120,9 @@ class ReviewControllerTest extends TestCase
 
     public function test_store_rejects_authenticated_user_from_reviewing_their_own_artist(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->artist()->create();
 
-        $artist = ArtistProfile::factory()->create([
-            'user_id' => $user->id,
-        ]);
+        $artist = $user->artistProfile;
 
         Sanctum::actingAs($user);
 
@@ -447,8 +446,8 @@ class ReviewControllerTest extends TestCase
 
     public function test_reply_creates_reply_when_called_by_owner_of_the_artist_profile(): void
     {
-        $owner = User::factory()->create();
-        $artist = ArtistProfile::factory()->create(['user_id' => $owner->id]);
+        $owner = User::factory()->artist()->create();
+        $artist = $owner->artistProfile;
         $review = Review::factory()->create(['artist_profile_id' => $artist->id]);
 
         Sanctum::actingAs($owner);

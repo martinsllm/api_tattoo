@@ -18,6 +18,7 @@ class FavoriteControllerTest extends TestCase
         parent::setUp();
 
         Role::findOrCreate('admin');
+        Role::findOrCreate('artist');
     }
 
     public function test_index_returns_pagination_metadata_at_root_level(): void
@@ -107,11 +108,9 @@ class FavoriteControllerTest extends TestCase
 
     public function test_toggle_rejects_authenticated_user_from_favoriting_their_own_artist(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->artist()->create();
 
-        $artist = ArtistProfile::factory()->create([
-            'user_id' => $user->id,
-        ]);
+        $artist = $user->artistProfile;
 
         Sanctum::actingAs($user);
 
