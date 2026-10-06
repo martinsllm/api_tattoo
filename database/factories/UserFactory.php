@@ -44,6 +44,13 @@ class UserFactory extends Factory
         ]);
     }
 
+    public function admin(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            $user->assignRole('admin');
+        });
+    }
+
     public function client(): static
     {
         return $this->afterCreating(function (User $user) {

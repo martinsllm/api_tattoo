@@ -24,8 +24,7 @@ class ArtistAdminControllerTest extends TestCase
 
     public function test_index_lists_active_and_inactive_artists_when_called_by_admin(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         $active = ArtistProfile::factory()->create(['studio_name' => 'Ativo Admin']);
         $inactive = ArtistProfile::factory()->inactive()->create(['studio_name' => 'Inativo Admin']);
@@ -47,8 +46,7 @@ class ArtistAdminControllerTest extends TestCase
 
     public function test_index_filters_inactive_artists_when_is_active_is_false(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         ArtistProfile::factory()->create(['studio_name' => 'Ativo']);
         $inactive = ArtistProfile::factory()->inactive()->create(['studio_name' => 'Inativo']);
@@ -75,8 +73,7 @@ class ArtistAdminControllerTest extends TestCase
 
     public function test_index_forbids_authenticated_client(): void
     {
-        $client = User::factory()->create();
-        $client->assignRole('client');
+        $client = User::factory()->client()->create();
 
         Sanctum::actingAs($client);
 
@@ -101,8 +98,7 @@ class ArtistAdminControllerTest extends TestCase
 
     public function test_deactivate_marks_artist_as_inactive_when_called_by_admin(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         $artist = ArtistProfile::factory()->create(['is_active' => true]);
 
@@ -121,8 +117,7 @@ class ArtistAdminControllerTest extends TestCase
 
     public function test_activate_marks_artist_as_active_when_called_by_admin(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         $artist = ArtistProfile::factory()->inactive()->create();
 
@@ -141,8 +136,7 @@ class ArtistAdminControllerTest extends TestCase
 
     public function test_deactivate_records_audit_log_with_actor_and_target(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         $artist = ArtistProfile::factory()->create(['is_active' => true]);
 
@@ -160,8 +154,7 @@ class ArtistAdminControllerTest extends TestCase
 
     public function test_activate_records_audit_log_with_actor_and_target(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         $artist = ArtistProfile::factory()->inactive()->create();
 
@@ -194,8 +187,7 @@ class ArtistAdminControllerTest extends TestCase
 
     public function test_deactivate_forbids_authenticated_client(): void
     {
-        $client = User::factory()->create();
-        $client->assignRole('client');
+        $client = User::factory()->client()->create();
 
         $artist = ArtistProfile::factory()->create(['is_active' => true]);
 
@@ -265,8 +257,7 @@ class ArtistAdminControllerTest extends TestCase
 
     public function test_activate_forbids_authenticated_client(): void
     {
-        $client = User::factory()->create();
-        $client->assignRole('client');
+        $client = User::factory()->client()->create();
 
         $artist = ArtistProfile::factory()->inactive()->create();
 
@@ -285,8 +276,7 @@ class ArtistAdminControllerTest extends TestCase
 
     public function test_deactivate_returns_404_when_artist_does_not_exist(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         Sanctum::actingAs($admin);
 

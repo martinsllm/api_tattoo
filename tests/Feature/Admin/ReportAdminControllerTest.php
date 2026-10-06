@@ -26,8 +26,7 @@ class ReportAdminControllerTest extends TestCase
 
     public function test_index_returns_paginated_reports_for_admin(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         $this->createReport();
         $this->createReport();
@@ -48,8 +47,7 @@ class ReportAdminControllerTest extends TestCase
 
     public function test_index_filters_by_status(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         $pendingReport = $this->createReport(['status' => ReportStatus::PENDING]);
         $this->createReport(['status' => ReportStatus::RESOLVED]);
@@ -76,8 +74,7 @@ class ReportAdminControllerTest extends TestCase
 
     public function test_index_forbids_authenticated_client(): void
     {
-        $client = User::factory()->create();
-        $client->assignRole('client');
+        $client = User::factory()->client()->create();
 
         Sanctum::actingAs($client);
 
@@ -89,8 +86,7 @@ class ReportAdminControllerTest extends TestCase
 
     public function test_update_resolves_pending_report_for_admin(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         $report = $this->createReport();
 
@@ -112,8 +108,7 @@ class ReportAdminControllerTest extends TestCase
 
     public function test_update_dismisses_pending_report_for_admin(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         $report = $this->createReport();
 
@@ -134,8 +129,7 @@ class ReportAdminControllerTest extends TestCase
 
     public function test_update_records_audit_log_on_resolve(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         $report = $this->createReport();
 
@@ -155,8 +149,7 @@ class ReportAdminControllerTest extends TestCase
 
     public function test_update_records_audit_log_on_dismiss(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         $report = $this->createReport();
 
@@ -176,8 +169,7 @@ class ReportAdminControllerTest extends TestCase
 
     public function test_update_rejects_already_processed_report(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         $report = $this->createReport(['status' => ReportStatus::RESOLVED]);
 
@@ -198,8 +190,7 @@ class ReportAdminControllerTest extends TestCase
 
     public function test_update_rejects_invalid_status_in_body(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         $report = $this->createReport();
 
@@ -220,8 +211,7 @@ class ReportAdminControllerTest extends TestCase
 
     public function test_update_forbids_authenticated_client(): void
     {
-        $client = User::factory()->create();
-        $client->assignRole('client');
+        $client = User::factory()->client()->create();
 
         $report = $this->createReport();
 
@@ -242,8 +232,7 @@ class ReportAdminControllerTest extends TestCase
 
     public function test_update_returns_404_when_report_does_not_exist(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         Sanctum::actingAs($admin);
 

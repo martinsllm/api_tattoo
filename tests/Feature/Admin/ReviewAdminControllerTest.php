@@ -25,8 +25,7 @@ class ReviewAdminControllerTest extends TestCase
 
     public function test_destroy_removes_review_when_called_by_admin(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         $review = Review::factory()->create();
 
@@ -43,8 +42,7 @@ class ReviewAdminControllerTest extends TestCase
 
     public function test_destroy_records_audit_log_with_actor_and_target(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         $review = Review::factory()->create();
 
@@ -74,8 +72,7 @@ class ReviewAdminControllerTest extends TestCase
 
     public function test_destroy_forbids_authenticated_client(): void
     {
-        $client = User::factory()->create();
-        $client->assignRole('client');
+        $client = User::factory()->client()->create();
 
         $review = Review::factory()->create();
 
@@ -91,8 +88,7 @@ class ReviewAdminControllerTest extends TestCase
 
     public function test_destroy_forbids_authenticated_artist(): void
     {
-        $artistUser = User::factory()->create();
-        $artistUser->assignRole('artist');
+        $artistUser = User::factory()->artist()->create();
 
         $review = Review::factory()->create();
 
@@ -108,8 +104,7 @@ class ReviewAdminControllerTest extends TestCase
 
     public function test_destroy_returns_404_when_review_does_not_exist(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         Sanctum::actingAs($admin);
 

@@ -26,8 +26,7 @@ class TagAdminControllerTest extends TestCase
 
     public function test_store_creates_tag_when_called_by_admin(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         Sanctum::actingAs($admin);
 
@@ -51,8 +50,7 @@ class TagAdminControllerTest extends TestCase
 
     public function test_store_forbids_authenticated_client(): void
     {
-        $client = User::factory()->create();
-        $client->assignRole('client');
+        $client = User::factory()->client()->create();
 
         Sanctum::actingAs($client);
 
@@ -68,8 +66,7 @@ class TagAdminControllerTest extends TestCase
 
     public function test_store_forbids_authenticated_artist(): void
     {
-        $artist = User::factory()->create();
-        $artist->assignRole('artist');
+        $artist = User::factory()->artist()->create();
 
         Sanctum::actingAs($artist);
 
@@ -85,8 +82,7 @@ class TagAdminControllerTest extends TestCase
 
     public function test_store_returns_validation_errors_when_name_is_required(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         Sanctum::actingAs($admin);
 
@@ -100,8 +96,7 @@ class TagAdminControllerTest extends TestCase
 
     public function test_store_returns_validation_errors_when_name_is_too_long(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         Sanctum::actingAs($admin);
 
@@ -115,8 +110,7 @@ class TagAdminControllerTest extends TestCase
 
     public function test_store_returns_validation_errors_when_name_is_already_taken(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         Sanctum::actingAs($admin);
 
@@ -131,8 +125,7 @@ class TagAdminControllerTest extends TestCase
 
     public function test_store_invalidates_tags_cache(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         Sanctum::actingAs($admin);
 
@@ -149,8 +142,7 @@ class TagAdminControllerTest extends TestCase
 
     public function test_update_updates_tag_when_called_by_admin(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         Sanctum::actingAs($admin);
 
@@ -182,8 +174,7 @@ class TagAdminControllerTest extends TestCase
 
     public function test_update_forbids_authenticated_client(): void
     {
-        $client = User::factory()->create();
-        $client->assignRole('client');
+        $client = User::factory()->client()->create();
 
         Sanctum::actingAs($client);
 
@@ -201,8 +192,7 @@ class TagAdminControllerTest extends TestCase
 
     public function test_update_forbids_authenticated_artist(): void
     {
-        $artist = User::factory()->create();
-        $artist->assignRole('artist');
+        $artist = User::factory()->artist()->create();
 
         Sanctum::actingAs($artist);
 
@@ -220,8 +210,7 @@ class TagAdminControllerTest extends TestCase
 
     public function test_update_returns_validation_errors_when_name_is_required(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         Sanctum::actingAs($admin);
 
@@ -237,8 +226,7 @@ class TagAdminControllerTest extends TestCase
 
     public function test_update_returns_validation_errors_when_name_is_too_long(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         Sanctum::actingAs($admin);
 
@@ -254,8 +242,7 @@ class TagAdminControllerTest extends TestCase
 
     public function test_update_returns_404_when_tag_does_not_exist(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         Sanctum::actingAs($admin);
 
@@ -271,8 +258,7 @@ class TagAdminControllerTest extends TestCase
 
     public function test_update_return_validation_errors_when_name_is_already_taken(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         Sanctum::actingAs($admin);
 
@@ -289,8 +275,7 @@ class TagAdminControllerTest extends TestCase
 
     public function test_update_invalidates_tags_cache(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         Sanctum::actingAs($admin);
 
@@ -307,8 +292,7 @@ class TagAdminControllerTest extends TestCase
 
     public function test_destroy_removes_tag_when_called_by_admin(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         Sanctum::actingAs($admin);
 
@@ -335,8 +319,7 @@ class TagAdminControllerTest extends TestCase
 
     public function test_destroy_forbids_authenticated_client(): void
     {
-        $client = User::factory()->create();
-        $client->assignRole('client');
+        $client = User::factory()->client()->create();
 
         Sanctum::actingAs($client);
 
@@ -352,8 +335,7 @@ class TagAdminControllerTest extends TestCase
 
     public function test_destroy_forbids_authenticated_artist(): void
     {
-        $artist = User::factory()->create();
-        $artist->assignRole('artist');
+        $artist = User::factory()->artist()->create();
 
         Sanctum::actingAs($artist);
 
@@ -369,8 +351,7 @@ class TagAdminControllerTest extends TestCase
 
     public function test_destroy_returns_404_when_tag_does_not_exist(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         Sanctum::actingAs($admin);
 
@@ -384,8 +365,7 @@ class TagAdminControllerTest extends TestCase
 
     public function test_destroy_fails_when_tag_is_assigned_to_an_artist(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         Sanctum::actingAs($admin);
 
@@ -402,8 +382,7 @@ class TagAdminControllerTest extends TestCase
 
     public function test_destroy_invalidates_tags_cache(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         Sanctum::actingAs($admin);
 

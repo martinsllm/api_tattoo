@@ -27,15 +27,14 @@ class MetricsControllerTest extends TestCase
 
     public function test_metrics_returns_totals_when_called_by_admin(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         $artists = ArtistProfile::factory()->count(2)->create();
         Review::factory()->count(3)->create([
             'artist_profile_id' => $artists->first()->id,
         ]);
 
-        $client = User::factory()->create();
+        $client = User::factory()->client()->create();
         $client->favorites()->attach($artists->pluck('id'));
 
         Sanctum::actingAs($admin);
@@ -64,8 +63,7 @@ class MetricsControllerTest extends TestCase
     {
         $this->travelTo('2026-08-15 12:00:00');
 
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         $activeArtist = ArtistProfile::factory()->create(['is_active' => true]);
         ArtistProfile::factory()->create(['is_active' => true]);
@@ -80,14 +78,14 @@ class MetricsControllerTest extends TestCase
             'created_at' => now()->subMonth(),
         ]);
 
-        $client = User::factory()->create();
+        $client = User::factory()->client()->create();
         $client->favorites()->attach($activeArtist->id);
         DB::table('favorites')
             ->where('user_id', $client->id)
             ->where('artist_profile_id', $activeArtist->id)
             ->update(['created_at' => now()]);
 
-        $otherClient = User::factory()->create();
+        $otherClient = User::factory()->client()->create();
         $otherClient->favorites()->attach($activeArtist->id);
         DB::table('favorites')
             ->where('user_id', $otherClient->id)
@@ -117,8 +115,7 @@ class MetricsControllerTest extends TestCase
 
     public function test_metrics_forbids_authenticated_client(): void
     {
-        $client = User::factory()->create();
-        $client->assignRole('client');
+        $client = User::factory()->client()->create();
 
         Sanctum::actingAs($client);
 
@@ -130,10 +127,9 @@ class MetricsControllerTest extends TestCase
 
     public function test_metrics_forbids_authenticated_artist(): void
     {
-        $artist = ArtistProfile::factory()->create();
-        $artist->user->assignRole('artist');
+        $artist = User::factory()->artist()->create();
 
-        Sanctum::actingAs($artist->user);
+        Sanctum::actingAs($artist);
 
         $response = $this->getJson(route('admin.metrics'));
 
@@ -145,8 +141,7 @@ class MetricsControllerTest extends TestCase
     {
         $this->travelTo('2026-09-15 12:00:00');
 
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         ArtistProfile::factory()->count(2)->create();
 
