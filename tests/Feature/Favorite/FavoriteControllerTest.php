@@ -85,8 +85,7 @@ class FavoriteControllerTest extends TestCase
 
     public function test_toggle_forbids_admin_from_favoriting(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         $artist = ArtistProfile::factory()->create();
 

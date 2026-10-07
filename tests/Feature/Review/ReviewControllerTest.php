@@ -97,8 +97,7 @@ class ReviewControllerTest extends TestCase
 
     public function test_store_forbids_admin_from_creating_review(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         $artist = ArtistProfile::factory()->create();
 
@@ -292,8 +291,7 @@ class ReviewControllerTest extends TestCase
     public function test_destroy_allows_admin_to_delete_other_user_review(): void
     {
         $author = User::factory()->create();
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
         $review = Review::factory()->create(['user_id' => $author->id]);
 
         Sanctum::actingAs($admin);
@@ -399,8 +397,7 @@ class ReviewControllerTest extends TestCase
 
     public function test_update_forbids_admin_to_update_review(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
         $review = Review::factory()->create();
 
         Sanctum::actingAs($admin);
@@ -462,8 +459,7 @@ class ReviewControllerTest extends TestCase
 
     public function test_reply_forbids_admin_to_reply_to_review(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
         $review = Review::factory()->create();
 
         Sanctum::actingAs($admin);

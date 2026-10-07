@@ -122,8 +122,7 @@ class ReportControllerTest extends TestCase
 
     public function test_store_forbids_admin_from_creating_report(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         $review = Review::factory()->create();
 

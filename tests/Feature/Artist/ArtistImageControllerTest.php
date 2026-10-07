@@ -435,8 +435,7 @@ class ArtistImageControllerTest extends TestCase
         Storage::fake('public');
 
         $owner = User::factory()->artist()->create();
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         $artist = $owner->artistProfile;
 
@@ -460,8 +459,7 @@ class ArtistImageControllerTest extends TestCase
         Storage::fake('public');
 
         $owner = User::factory()->artist()->create();
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         $artist = $owner->artistProfile;
 

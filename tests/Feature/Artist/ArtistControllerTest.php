@@ -191,8 +191,7 @@ class ArtistControllerTest extends TestCase
 
     public function test_store_promotes_user_to_artist_role(): void
     {
-        $user = User::factory()->create();
-        $user->assignRole('client');
+        $user = User::factory()->client()->create();
 
         Sanctum::actingAs($user);
 
@@ -361,8 +360,7 @@ class ArtistControllerTest extends TestCase
     public function test_update_forbids_admin_from_changing_other_artist_profile(): void
     {
         $owner = User::factory()->create();
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $admin = User::factory()->admin()->create();
 
         $artist = ArtistProfile::factory()->for($owner)->create([
             'studio_name' => 'Nome Antigo',
