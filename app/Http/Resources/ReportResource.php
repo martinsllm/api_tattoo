@@ -3,11 +3,15 @@
 namespace App\Http\Resources;
 
 use App\Models\ArtistProfile;
+use App\Models\Report;
 use App\Models\Review;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin Report
+ */
 class ReportResource extends JsonResource
 {
     /**

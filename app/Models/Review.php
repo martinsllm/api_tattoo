@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Review extends Model
@@ -23,12 +24,12 @@ class Review extends Model
         'replied_at' => 'datetime',
     ];
 
-    public function artist()
+    public function artist(): BelongsTo
     {
         return $this->belongsTo(ArtistProfile::class, 'artist_profile_id');
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

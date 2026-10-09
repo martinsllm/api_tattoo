@@ -12,6 +12,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+/**
+ * @property float|null $distance
+ * @property int|null $reviews_avg_rating
+ * @property int|null $favorites_count
+ * @property bool|null $is_favorited
+ */
 class ArtistProfile extends Model
 {
     use FilterArtistTrait;
