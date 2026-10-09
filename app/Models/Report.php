@@ -6,6 +6,8 @@ use App\Enums\ReportReason;
 use App\Enums\ReportStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Report extends Model
 {
@@ -18,12 +20,12 @@ class Report extends Model
         'reason' => ReportReason::class,
     ];
 
-    public function reporter()
+    public function reporter(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reporter_id');
     }
 
-    public function reportable()
+    public function reportable(): MorphTo
     {
         return $this->morphTo();
     }

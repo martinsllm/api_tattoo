@@ -7,6 +7,10 @@ use Database\Factories\ArtistProfileFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class ArtistProfile extends Model
 {
@@ -36,38 +40,38 @@ class ArtistProfile extends Model
         'longitude' => 'float',
     ];
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function images()
+    public function images(): HasMany
     {
         return $this->hasMany(ArtistImage::class)->orderBy('position');
     }
 
-    public function mainImage()
+    public function mainImage(): HasOne
     {
         return $this->hasOne(ArtistImage::class)->where('is_main', true);
     }
 
-    public function styles()
+    public function styles(): BelongsToMany
     {
         return $this->belongsToMany(Style::class, 'artist_style');
     }
 
-    public function reviews()
+    public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
     }
 
-    public function favoritedBy()
+    public function favoritedBy(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'favorites')
             ->withTimestamps();
     }
 
-    public function tags()
+    public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class, 'artist_tag');
     }
