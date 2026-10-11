@@ -47,7 +47,7 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * @return HasOne<ArtistProfile, User>
+     * @return HasOne<ArtistProfile, $this>
      */
     public function artistProfile(): HasOne
     {
