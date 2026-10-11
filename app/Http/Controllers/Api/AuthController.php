@@ -10,6 +10,8 @@ use App\Http\Requests\Auth\StoreUserRequest;
 use App\Http\Requests\Auth\UpdateProfileRequest;
 use App\Http\Resources\ArtistResource;
 use App\Http\Resources\UserResource;
+use App\Models\ArtistProfile;
+use App\Models\Review;
 use App\Models\User;
 use App\Services\AccountService;
 use Illuminate\Support\Facades\Auth;
@@ -129,7 +131,7 @@ class AuthController extends Controller
         return ApiResponse::success([
             'user' => new UserResource($user),
             'artist_profile' => $user->artistProfile ? new ArtistResource($user->artistProfile) : null,
-            'reviews' => $user->reviews->map(function ($review) {
+            'reviews' => $user->reviews->map(function (Review $review) {
                 return [
                     'id' => $review->id,
                     'artist_profile_id' => $review->artist_profile_id,
@@ -138,7 +140,7 @@ class AuthController extends Controller
                     'created_at' => $review->created_at,
                 ];
             }),
-            'favorites' => $user->favorites->map(function ($artist) {
+            'favorites' => $user->favorites->map(function (ArtistProfile $artist) {
                 return [
                     'artist_profile_id' => $artist->id,
                     'favorited_at' => $artist->pivot->created_at,

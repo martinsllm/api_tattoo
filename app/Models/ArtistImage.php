@@ -4,7 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property-read ArtistProfile|null $artist
+ */
 class ArtistImage extends Model
 {
     use HasFactory;
@@ -22,7 +26,7 @@ class ArtistImage extends Model
         'is_main' => 'boolean',
     ];
 
-    public function artist()
+    public function artist(): BelongsTo
     {
         return $this->belongsTo(ArtistProfile::class, 'artist_profile_id');
     }

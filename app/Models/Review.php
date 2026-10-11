@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property-read User|null $user
+ * @property-read ArtistProfile|null $artist
+ */
 class Review extends Model
 {
     use HasFactory, SoftDeletes;

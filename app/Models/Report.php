@@ -9,6 +9,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
+/**
+ * @property-read User|null $reporter
+ * @property-read Model|null $reportable
+ */
 class Report extends Model
 {
     use HasFactory;

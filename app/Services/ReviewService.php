@@ -18,7 +18,7 @@ class ReviewService
         // impedir autoavaliação
         $artist = $this->resolveActiveArtistForAction($data['artist_profile_id'], 'You cannot review yourself.');
 
-        $existingReview = $artist->reviews()->withTrashed()->where('user_id', $user->id)->first();
+        $existingReview = Review::withTrashed()->where('user_id', $user->id)->first();
 
         if ($existingReview) {
             if ($existingReview->trashed()) {
