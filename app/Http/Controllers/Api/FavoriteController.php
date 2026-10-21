@@ -2,18 +2,16 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\ToggleArtistFavoriteAction;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Shared\PaginatedRequest;
 use App\Http\Resources\ArtistResource;
-use App\Services\FavoriteService;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class FavoriteController extends Controller
 {
-    public function __construct(private FavoriteService $favoriteService) {}
-
     public function index(PaginatedRequest $request)
     {
         $user = Auth::user();
@@ -27,13 +25,14 @@ class FavoriteController extends Controller
         return ApiResponse::paginate(ArtistResource::collection($favorites), 'Favorite artists retrieved successfully');
     }
 
-    public function toggle(int $artistId)
+    public function toggle(int $artistId, ToggleArtistFavoriteAction $toggle)
     {
-        if (Auth::user()->hasRole('admin')) {
+        $user = Auth::user();
+        if ($user->hasRole('admin')) {
             throw new AccessDeniedHttpException;
         }
 
-        $favorited = $this->favoriteService->toggle($artistId);
+        $favorited = $toggle($user, $artistId);
 
         $message = $favorited ? 'Added to favorites' : 'Removed from favorites';
 
