@@ -24,14 +24,14 @@ Usamos `DB::transaction()` do Laravel quando **múltiplas operações no banco**
 | ------- | --------------------- |
 | `ArtistImageService` | `multipleUpload`, `setMain`, `reorder` |
 | `ArtistService` | `create`, `update` |
-| `AccountService` | `delete` |
+| `DeleteUserAccountAction` | `__invoke` |
 | `AuthController` | `register`, `updateProfile`, `cancelPendingEmail` |
 | `EmailVerificationController` | `verifyChange` |
 
 
 - [X] `ArtistImageService`
 - [X] `ArtistService`
-- [ ] `AccountService`
+- [X] `DeleteUserAccountAction`
 - [ ] `AuthController` / outros
 
 ---
@@ -85,7 +85,7 @@ Tags gravadas, perfil rollback parcial impossível manualmente → inconsistênc
 
 Transação **não** rollbacka fila, disco, e-mail nem serviços externos. Neste projeto:
 
-- **Storage (disco/S3):** arquivos não participam do rollback do banco. No upload (`multipleUpload`), `store()` roda dentro da transação, mas o **catch** apaga paths se a TX falhar. No delete de conta (`AccountService::delete`), arquivos são removidos **depois** do commit — primeiro limpa DB (tokens, profile, user), depois `disk->delete`.
+- **Storage (disco/S3):** arquivos não participam do rollback do banco. No upload (`multipleUpload`), `store()` roda dentro da transação, mas o **catch** apaga paths se a TX falhar. No delete de conta (`DeleteUserAccountAction`), arquivos são removidos **depois** do commit — primeiro limpa DB (tokens, profile, user), depois `disk->delete`.
 - **Fila (jobs):** `GenerateArtistImageThumbnail::dispatch` roda dentro da TX do upload; se houver rollback, o job **pode** já estar na fila com um `image_id` que não existe mais. Worker trata falha ou no-op — atomicidade “total” não inclui fila.
 - **E-mail:** em troca de e-mail (`AuthController::updateProfile`), a transação grava `pending_email`, desativa catálogo se necessário e revoga tokens; o **envio** (`sendPendingEmailChangeNotification`) ocorre **após** o commit — evita e-mail enviado para mudança que rollbackou.
 - **APIs externas:** não há nestes fluxos, mas mesma regra — chamar HTTP dentro de TX é arriscado (lento + não desfaz se rollback).

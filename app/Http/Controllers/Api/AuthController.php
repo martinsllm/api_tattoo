@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\DeleteUserAccountAction;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\DeleteAccountRequest;
@@ -11,7 +12,6 @@ use App\Http\Requests\Auth\UpdateProfileRequest;
 use App\Http\Resources\ArtistResource;
 use App\Http\Resources\UserResource;
 use App\Models\User;
-use App\Services\AccountService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -108,9 +108,9 @@ class AuthController extends Controller
         return ApiResponse::success(new UserResource($user));
     }
 
-    public function destroy(DeleteAccountRequest $request, AccountService $accountService)
+    public function destroy(DeleteAccountRequest $request, DeleteUserAccountAction $deleteUserAccount)
     {
-        $accountService->delete($request->user());
+        $deleteUserAccount($request->user());
 
         return ApiResponse::success(null, 'Conta excluída com sucesso.');
     }

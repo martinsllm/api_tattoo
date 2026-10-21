@@ -1,19 +1,20 @@
 <?php
 
-namespace App\Services;
+namespace App\Actions;
 
 use App\Models\User;
+use App\Services\ArtistImageThumbnailService;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\DB;
 
-class AccountService
+class DeleteUserAccountAction
 {
     public function __construct(
         private readonly ArtistImageThumbnailService $thumbnailService,
         private readonly Filesystem $disk,
     ) {}
 
-    public function delete(User $user): void
+    public function __invoke(User $user)
     {
         $paths = [];
 
@@ -36,6 +37,5 @@ class AccountService
         });
 
         $this->disk->delete($paths);
-
     }
 }
