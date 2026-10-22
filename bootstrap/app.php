@@ -40,7 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (AuthorizationException $e, $request) {
             $message = $e->getMessage();
 
-            if ($message === '' || $message === 'This action is unauthorized.') {
+            if (trim($message) === '') {
                 return ApiResponse::error('Forbidden', 403);
             }
 
@@ -51,7 +51,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (AccessDeniedHttpException $e, $request) {
             $message = $e->getMessage();
 
-            if ($message === '' || $message === 'Forbidden' || $message === 'This action is unauthorized.') {
+            if (trim($message) === '') {
                 return ApiResponse::error('Forbidden', 403);
             }
 
@@ -71,7 +71,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             $message = $e->getMessage();
 
-            if ($message === '' || $message === 'Forbidden' || $message === 'This action is unauthorized.') {
+            if (trim($message) === '') {
                 return ApiResponse::error('Forbidden', 403);
             }
 

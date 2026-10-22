@@ -316,7 +316,7 @@ class ReviewControllerTest extends TestCase
         $response = $this->deleteJson(route('review.destroy', $review->id));
 
         $response->assertStatus(403)
-            ->assertJson(['message' => 'Forbidden']);
+            ->assertJson(['message' => 'This action is unauthorized.']);
 
         $this->assertDatabaseHas('reviews', ['id' => $review->id]);
     }
@@ -405,7 +405,7 @@ class ReviewControllerTest extends TestCase
         $response = $this->patchJson(route('review.update', $review->id), ['rating' => 4, 'comment' => 'New comment']);
 
         $response->assertStatus(403)
-            ->assertJson(['message' => 'Forbidden']);
+            ->assertJson(['message' => 'This action is unauthorized.']);
 
         $this->assertDatabaseMissing('reviews', ['id' => $review->id, 'rating' => 4, 'comment' => 'New comment']);
     }
@@ -420,7 +420,7 @@ class ReviewControllerTest extends TestCase
         $response = $this->patchJson(route('review.update', $review->id), ['rating' => 4, 'comment' => 'New comment']);
 
         $response->assertStatus(403)
-            ->assertJson(['message' => 'Forbidden']);
+            ->assertJson(['message' => 'This action is unauthorized.']);
 
         $this->assertDatabaseMissing('reviews', ['id' => $review->id, 'rating' => 4, 'comment' => 'New comment']);
     }
@@ -467,7 +467,7 @@ class ReviewControllerTest extends TestCase
         $response = $this->patchJson(route('review.reply', $review->id), ['reply' => 'New reply']);
 
         $response->assertStatus(403)
-            ->assertJson(['message' => 'Forbidden']);
+            ->assertJson(['message' => 'This action is unauthorized.']);
 
         $this->assertDatabaseMissing('reviews', ['id' => $review->id, 'reply' => 'New reply']);
     }
@@ -483,7 +483,7 @@ class ReviewControllerTest extends TestCase
         $response = $this->patchJson(route('review.reply', $review->id), ['reply' => 'New reply']);
 
         $response->assertStatus(403)
-            ->assertJson(['message' => 'Forbidden']);
+            ->assertJson(['message' => 'This action is unauthorized.']);
 
         $this->assertDatabaseMissing('reviews', ['id' => $review->id, 'reply' => 'New reply']);
     }

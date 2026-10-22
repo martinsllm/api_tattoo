@@ -348,7 +348,7 @@ class ArtistControllerTest extends TestCase
 
         $response->assertStatus(403)
             ->assertJson([
-                'message' => 'Forbidden',
+                'message' => 'This action is unauthorized.',
             ]);
 
         $this->assertDatabaseHas('artist_profiles', [
@@ -373,7 +373,7 @@ class ArtistControllerTest extends TestCase
         ]);
 
         $response->assertStatus(403)
-            ->assertJsonPath('message', 'Forbidden');
+            ->assertJsonPath('message', 'This action is unauthorized.');
 
         $this->assertDatabaseHas('artist_profiles', [
             'id' => $artist->id,
@@ -580,7 +580,7 @@ class ArtistControllerTest extends TestCase
         $response = $this->patchJson(route('artist.deactivate', $artist->id));
 
         $response->assertStatus(403)
-            ->assertJson(['message' => 'Forbidden']);
+            ->assertJson(['message' => 'This action is unauthorized.']);
 
         $this->assertDatabaseHas('artist_profiles', [
             'id' => $artist->id,
@@ -632,7 +632,7 @@ class ArtistControllerTest extends TestCase
         $response = $this->patchJson(route('artist.activate', $artist->id));
 
         $response->assertStatus(403)
-            ->assertJson(['message' => 'Forbidden']);
+            ->assertJson(['message' => 'This action is unauthorized.']);
 
         $this->assertDatabaseHas('artist_profiles', [
             'id' => $artist->id,

@@ -135,7 +135,7 @@ class ArtistImageControllerTest extends TestCase
 
         $response->assertStatus(403)
             ->assertJson([
-                'message' => 'Forbidden',
+                'message' => 'This action is unauthorized.',
             ]);
 
         $this->assertDatabaseCount('artist_images', 0);
@@ -298,7 +298,7 @@ class ArtistImageControllerTest extends TestCase
         $response = $this->patchJson(route('artist.image.set-main', $image->id));
 
         $response->assertStatus(403)
-            ->assertJsonPath('message', 'Forbidden');
+            ->assertJsonPath('message', 'This action is unauthorized.');
 
         $this->assertDatabaseHas('artist_images', [
             'id' => $image->id,
@@ -424,7 +424,7 @@ class ArtistImageControllerTest extends TestCase
         $response = $this->deleteJson(route('artist.image.destroy', $image->id));
 
         $response->assertStatus(403)
-            ->assertJsonPath('message', 'Forbidden');
+            ->assertJsonPath('message', 'This action is unauthorized.');
 
         $this->assertDatabaseHas('artist_images', ['id' => $image->id]);
         Storage::disk('public')->assertExists($image->image_url);
@@ -470,7 +470,7 @@ class ArtistImageControllerTest extends TestCase
         $response = $this->patchJson(route('artist.image.set-main', $image->id));
 
         $response->assertStatus(403)
-            ->assertJsonPath('message', 'Forbidden');
+            ->assertJsonPath('message', 'This action is unauthorized.');
 
         $this->assertDatabaseHas('artist_images', [
             'id' => $image->id,
@@ -534,7 +534,7 @@ class ArtistImageControllerTest extends TestCase
         ]);
 
         $response->assertStatus(403)
-            ->assertJsonPath('message', 'Forbidden');
+            ->assertJsonPath('message', 'This action is unauthorized.');
 
         foreach ($images as $index => $image) {
             $this->assertDatabaseHas('artist_images', [
