@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\ApiError;
+use App\Helpers\ApiErrorMessage;
 use App\Helpers\ApiResponse;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -28,7 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         // 401
         $exceptions->render(function (AuthenticationException $e, $request) {
-            return ApiResponse::error('Unauthenticated', 401);
+            return ApiResponse::error(ApiError::UNAUTHENTICATED->value, 401);
         });
 
         // 403 — link de verificação assinado inválido ou expirado
@@ -38,29 +40,17 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // 403
         $exceptions->render(function (AuthorizationException $e, $request) {
-            $message = $e->getMessage();
-
-            if (trim($message) === '') {
-                return ApiResponse::error('Forbidden', 403);
-            }
-
-            return ApiResponse::error($message, 403);
+            return ApiResponse::error(ApiErrorMessage::resolve($e->getMessage()), 403);
         });
 
         // 403
         $exceptions->render(function (AccessDeniedHttpException $e, $request) {
-            $message = $e->getMessage();
-
-            if (trim($message) === '') {
-                return ApiResponse::error('Forbidden', 403);
-            }
-
-            return ApiResponse::error($message, 403);
+            return ApiResponse::error(ApiErrorMessage::resolve($e->getMessage()), 403);
         });
 
         // 403
         $exceptions->render(function (UnauthorizedException $e, $request) {
-            return ApiResponse::error('Forbidden', 403);
+            return ApiResponse::error(ApiError::FORBIDDEN->value, 403);
         });
 
         // 403 — abort(403) lança HttpException genérica (ex.: DocsAccess)
@@ -69,28 +59,22 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null;
             }
 
-            $message = $e->getMessage();
-
-            if (trim($message) === '') {
-                return ApiResponse::error('Forbidden', 403);
-            }
-
-            return ApiResponse::error($message, 403);
+            return ApiResponse::error(ApiErrorMessage::resolve($e->getMessage()), 403);
         });
 
         // 429
         $exceptions->render(function (TooManyRequestsHttpException $e, $request) {
-            return ApiResponse::error('Too many requests', 429);
+            return ApiResponse::error(ApiError::TOO_MANY_REQUESTS->value, 429);
         });
 
         // 404
         $exceptions->render(function (NotFoundHttpException $e, $request) {
-            return ApiResponse::error('Resource not found', 404);
+            return ApiResponse::error(ApiError::NOT_FOUND->value, 404);
         });
 
         // 422
         $exceptions->render(function (ValidationException $e, $request) {
-            return ApiResponse::error('Validation error', 422, $e->errors());
+            return ApiResponse::error(ApiError::VALIDATION_ERROR->value, 422, $e->errors());
         });
 
         // regra de negócio
@@ -104,7 +88,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return ApiResponse::error($e->getMessage(), 500);
             }
 
-            return ApiResponse::error('Internal server error', 500);
+            return ApiResponse::error(ApiError::INTERNAL_SERVER_ERROR->value, 500);
         });
     })
     ->withMiddleware(function (Middleware $middleware): void {
