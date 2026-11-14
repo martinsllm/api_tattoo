@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Admin\ArtistAdminController;
+use App\Http\Controllers\Api\Admin\AuditLogAdminController;
 use App\Http\Controllers\Api\Admin\MetricsController;
 use App\Http\Controllers\Api\Admin\ReportAdminController;
 use App\Http\Controllers\Api\Admin\ReviewAdminController;
@@ -101,4 +102,6 @@ Route::middleware(['auth:sanctum', 'role:admin', 'throttle:30,1'])->prefix('admi
     Route::get('/metrics', MetricsController::class)->name('metrics');
     Route::get('/reports', [ReportAdminController::class, 'index'])->name('report.index');
     Route::patch('/reports/{report}', [ReportAdminController::class, 'update'])->name('report.update');
+
+    Route::get('/audit-logs', AuditLogAdminController::class)->name('audit-log.index');
 });
