@@ -13,8 +13,8 @@ class AuditLogAdminController extends Controller
     public function __invoke(FilterAdminAuditLogsRequest $request)
     {
         $auditLogs = AuditLog::latest()
-            ->with('actor:id,name')
-            ->paginate($request->per_page ?? 10);
+            ->with('actor')
+            ->paginate($request->validated('per_page', 10));
 
         return ApiResponse::paginate(AuditLogResource::collection($auditLogs), 'Audit logs fetched successfully');
     }

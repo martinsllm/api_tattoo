@@ -17,7 +17,10 @@ class AuditLogResource extends JsonResource
         return [
             'id' => $this->id,
             'action' => $this->action,
-            'actor' => $this->actor,
+            'actor' => $this->whenLoaded('actor', fn () => [
+                'id' => $this->actor?->id,
+                'name' => $this->actor?->name,
+            ]),
             'created_at' => $this->created_at,
             'auditable_type' => $this->auditable_type,
             'auditable_id' => $this->auditable_id,
