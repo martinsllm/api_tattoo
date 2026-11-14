@@ -222,4 +222,88 @@ class ReportControllerTest extends TestCase
 
         $this->assertDatabaseCount('reports', 1);
     }
+
+    public function test_index_returns_paginated_reports_for_authenticated_user(): void
+    {
+        $user = User::factory()->create();
+
+        $this->createReportFor($user);
+        $this->createReportFor($user);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson(route('report.index'));
+
+        $response->assertOk()
+            ->assertJsonPath('message', 'Reports fetched successfully')
+            ->assertJsonStructure([
+                'data',
+                'links' => ['first', 'last', 'prev', 'next'],
+                'meta' => ['current_page', 'total', 'per_page', 'last_page'],
+            ])
+            ->assertJsonCount(2, 'data');
+    }
+
+    public function test_index_lists_only_reports_from_authenticated_user(): void
+    {
+        $userA = User::factory()->create();
+        $userB = User::factory()->create();
+
+        $this->createReportFor($userA);
+        $this->createReportFor($userA);
+        $reportB = $this->createReportFor($userB);
+
+        Sanctum::actingAs($userA);
+
+        $response = $this->getJson(route('report.index'));
+
+        $response->assertOk()
+            ->assertJsonCount(2, 'data');
+
+        $ids = collect($response->json('data'))->pluck('id');
+
+        $this->assertFalse($ids->contains($reportB->id));
+    }
+
+    public function test_index_requires_authentication(): void
+    {
+        $response = $this->getJson(route('report.index'));
+
+        $response->assertUnauthorized()
+            ->assertJsonPath('message', 'Unauthenticated');
+    }
+
+    public function test_index_includes_report_after_store(): void
+    {
+        $user = User::factory()->create();
+        $review = Review::factory()->create();
+
+        Sanctum::actingAs($user);
+
+        $this->postJson(route('report.store'), [
+            'reportable_type' => 'review',
+            'reportable_id' => $review->id,
+            'reason' => 'spam',
+        ])->assertCreated();
+
+        $response = $this->getJson(route('report.index'));
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.reportable_id', $review->id)
+            ->assertJsonPath('data.0.status', 'pending');
+    }
+
+    private function createReportFor(User $reporter, array $overrides = []): Report
+    {
+        $review = Review::factory()->create();
+
+        return Report::create(array_merge([
+            'reporter_id' => $reporter->id,
+            'reportable_type' => Review::class,
+            'reportable_id' => $review->id,
+            'reason' => ReportReason::SPAM,
+            'status' => ReportStatus::PENDING,
+        ], $overrides));
+    }
 }

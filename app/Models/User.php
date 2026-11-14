@@ -56,6 +56,11 @@ class User extends Authenticatable implements MustVerifyEmail
             ->withTimestamps();
     }
 
+    public function reports()
+    {
+        return $this->hasMany(Report::class, 'reporter_id');
+    }
+
     public function sendEmailVerificationNotification(): void
     {
         $this->rotateEmailVerificationToken();

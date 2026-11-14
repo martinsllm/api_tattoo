@@ -81,6 +81,7 @@ Route::middleware(['auth:sanctum', 'throttle:30,1'])->group(function () {
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorite.index');
 
     Route::post('/reports', [ReportController::class, 'store'])->name('report.store');
+    Route::get('/reports', [ReportController::class, 'index'])->name('report.index');
 
 });
 
